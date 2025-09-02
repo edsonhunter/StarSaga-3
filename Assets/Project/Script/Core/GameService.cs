@@ -116,6 +116,32 @@ namespace Gazeus.DesafioMatch3.Core
             return matchedPositions;
         }
         
+        private List<Vector2Int> AddMatchesFromPositions(List<List<Tile>> board, List<Vector2Int> positions, out int scoreGained)
+        {
+            var unique = new HashSet<(int x, int y)>();
+            var result = new List<Vector2Int>();
+            scoreGained = 0;
+
+            foreach (var p in positions)
+            {
+                // validate bounds
+                if (p.y < 0 || p.y >= board.Count) continue;
+                if (p.x < 0 || p.x >= board[p.y].Count) continue;
+
+                if (!unique.Add((p.x, p.y))) continue; // skip duplicates
+
+                // Only count/clear existing tiles
+                if (board[p.y][p.x].Type != -1)
+                {
+                    result.Add(new Vector2Int(p.x, p.y));
+                    scoreGained += board[p.y][p.x].Score;
+                    board[p.y][p.x] = new Tile { Id = -1, Type = -1, Score = 0 };
+                }
+            }
+
+            return result;
+        }
+        
         private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2Int> matchedPositions)
         {
             var moved = new List<MovedTileInfo>();
@@ -330,23 +356,34 @@ namespace Gazeus.DesafioMatch3.Core
 
         public List<BoardSequence> UsePowerUp(int x, int y)
         {
-            if (_powerUp == null) throw new InvalidOperationException("Cannot use PowerUp without PowerUp");
+            var sequences = new List<BoardSequence>();
 
-            List<Vector2Int> affectedTiles =
-                _powerUp.Activate(new PowerUpInfo { Board = _boardTiles, FromX = x, FromY = y });
+            if (_powerUp == null)
+                return sequences;
 
-            foreach (var pos in affectedTiles)
+            var info = new PowerUpInfo { Board = _boardTiles, FromX =  x, FromY = y };
+
+            List<Vector2Int> affected = _powerUp.Activate(info) ?? new List<Vector2Int>();
+            _powerUp = null;
+
+            if (affected.Count == 0)
+                return sequences;
+            
+            List<Vector2Int> matchedPositions = AddMatchesFromPositions(_boardTiles, affected, out int scoreToAdd);
+            List<MovedTileInfo> moved = MoveTiles(_boardTiles, matchedPositions);
+            List<AddedTileInfo> added = AddNewTiles(_boardTiles);
+
+            sequences.Add(new BoardSequence
             {
-                _boardTiles[pos.y][pos.x] = new Tile
-                {
-                    Id = -1,
-                    Type = -1,
-                    Score = -1
-                };
-            }
+                MatchedPosition = matchedPositions,
+                MovedTiles = moved,
+                AddedTiles = added,
+                ScoreToAdd = scoreToAdd
+            });
 
-            _powerUp = null; // reset after use
-            return Cascade(_boardTiles);
+            sequences.AddRange(Cascade(_boardTiles));
+
+            return sequences;
         }
         
         #endregion
