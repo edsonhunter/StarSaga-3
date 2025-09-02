@@ -31,12 +31,16 @@ namespace Gazeus.DesafioMatch3.Controllers
             _gameEngine = new GameService();
             _boardView.TileClicked += OnTileClick;
             _stripLinePowerUp.OnPressed += ActivatePowerUp;
+            _explodePowerUp.OnPressed += ActivatePowerUp;
+            _colorPowerUp.OnPressed += ActivatePowerUp;
         }
         
         private void OnDestroy()
         {
             _boardView.TileClicked -= OnTileClick;
             _stripLinePowerUp.OnPressed -= ActivatePowerUp;
+            _explodePowerUp.OnPressed -= ActivatePowerUp;
+            _colorPowerUp.OnPressed -= ActivatePowerUp;
         }
 
         private void Start()
@@ -44,6 +48,7 @@ namespace Gazeus.DesafioMatch3.Controllers
             List<List<Tile>> board = _gameEngine.StartGame(_boardWidth, _boardHeight);
             _boardView.CreateBoard(board);
             _stripLinePowerUp.Initialize(new StripedPowerUp(true));
+            _explodePowerUp.Initialize(new ExplodePowerUp(2));
         }
         #endregion
 
@@ -76,7 +81,11 @@ namespace Gazeus.DesafioMatch3.Controllers
             {
                 _isAnimating = true;
                 List<BoardSequence> powerUpResult = _gameEngine.UsePowerUp(x, y);
-                AnimateBoard(powerUpResult, 0, () => _isAnimating = false);
+                AnimateBoard(powerUpResult, 0, () =>
+                {
+                    _isAnimating = false;
+                    _powerUpActivated = false;
+                });
                 return;
             }
             if (_selectedX > -1 && _selectedY > -1)
@@ -115,6 +124,7 @@ namespace Gazeus.DesafioMatch3.Controllers
         
         private void ActivatePowerUp(PowerUp powerUp)
         {
+            if (_powerUpActivated) return;
             _powerUpActivated = true;
             _gameEngine.ActivatePowerUp(powerUp);
         }

@@ -965,7 +965,7 @@ MonoBehaviour:
   _boardView: {fileID: 429446043}
   _stripLinePowerUp: {fileID: 2142972046}
   _explodePowerUp: {fileID: 1645638004}
-  _colorPowerUp: {fileID: 0}
+  _colorPowerUp: {fileID: 2111409276}
   _boardHeight: 10
   _boardWidth: 10
 --- !u!4 &1361904665

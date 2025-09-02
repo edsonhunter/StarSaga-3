@@ -306,7 +306,7 @@ namespace Gazeus.DesafioMatch3.Core
             if (_powerUp == null) return boardSequences;
 
             List<Vector2Int> affectedTiles =
-                _powerUp.Activate(new PowerUpInfo { Board = _boardTiles, OriginX = x, OriginY = y });
+                _powerUp.Activate(new PowerUpInfo { Board = _boardTiles, FromX = x, FromY = y });
 
             foreach (var pos in affectedTiles)
             {
