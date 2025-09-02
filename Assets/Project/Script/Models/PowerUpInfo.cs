@@ -5,7 +5,7 @@ namespace Gazeus.DesafioMatch3.Models
     public class PowerUpInfo
     {
         public List<List<Tile>> Board;
-        public int OriginX;
-        public int OriginY;
+        public int FromX;
+        public int FromY;
     }
 }

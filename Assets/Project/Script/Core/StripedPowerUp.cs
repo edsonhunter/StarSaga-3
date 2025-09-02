@@ -16,8 +16,8 @@ namespace Gazeus.DesafioMatch3.Core
         public override List<Vector2Int> Activate(PowerUpInfo powerUpInfo)
         {
             var board =  powerUpInfo.Board;
-            var x = powerUpInfo.OriginX;
-            var y = powerUpInfo.OriginY;
+            var x = powerUpInfo.FromX;
+            var y = powerUpInfo.FromY;
             
             List<Vector2Int> affectedTiles = new();
 
