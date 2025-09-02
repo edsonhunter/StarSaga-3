@@ -49,6 +49,7 @@ namespace Gazeus.DesafioMatch3.Controllers
             _boardView.CreateBoard(board);
             _stripLinePowerUp.Initialize(new StripedPowerUp(true));
             _explodePowerUp.Initialize(new ExplodePowerUp(2));
+            _colorPowerUp.Initialize(new ColorPowerUp());
         }
         #endregion
 
