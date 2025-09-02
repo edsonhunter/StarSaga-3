@@ -56,14 +56,24 @@ namespace Gazeus.DesafioMatch3.Core
 
             Swap(newBoard, fromX, fromY, toX, toY);
 
+            return Cascade(newBoard);
+        }
+        
+        private void Swap(List<List<Tile>> board, int fromX, int fromY, int toX, int toY)
+        {
+            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+        }
+        
+        private List<BoardSequence> Cascade(List<List<Tile>> boardTiles)
+        {
             List<BoardSequence> boardSequences = new();
-            List<List<bool>> matchedTiles = FindMatches(newBoard);
+            List<List<bool>> matches = FindMatches(boardTiles);
 
-            while (HasMatch(matchedTiles))
+            while (HasMatch(matches))
             {
-                var matchedPosition = AddMatchedPositions(newBoard, matchedTiles, out int tileScore);
-                var movedTiles = MoveTiles(newBoard, matchedPosition);
-                var addedTiles = AddNewTiles(newBoard);
+                var matchedPosition = AddMatchedPositions(boardTiles, matches, out int tileScore);
+                var movedTiles =  MoveTiles(boardTiles, matchedPosition);
+                var addedTiles =  AddNewTiles(boardTiles);
 
                 BoardSequence sequence = new()
                 {
@@ -74,17 +84,12 @@ namespace Gazeus.DesafioMatch3.Core
                 };
 
                 boardSequences.Add(sequence);
-
-                matchedTiles = FindMatches(newBoard);
+                
+                matches = FindMatches(boardTiles);
             }
 
-            _boardTiles = newBoard;
+            _boardTiles = boardTiles;
             return boardSequences;
-        }
-        
-        private void Swap(List<List<Tile>> board, int fromX, int fromY, int toX, int toY)
-        {
-            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
         }
         
         private List<Vector2Int> AddMatchedPositions(List<List<Tile>> board, List<List<bool>> matchedTiles, out int totalScore)
@@ -320,34 +325,7 @@ namespace Gazeus.DesafioMatch3.Core
             }
 
             _powerUp = null; // reset after use
-            return Cascade();
-        }
-
-        private List<BoardSequence> Cascade()
-        {
-            List<BoardSequence> boardSequences = new();
-            List<List<bool>> matches = FindMatches(_boardTiles);
-
-            while (HasMatch(matches))
-            {
-                var matchedPosition = AddMatchedPositions(_boardTiles, matches, out int tileScore);
-                var movedTiles =  MoveTiles(_boardTiles, matchedPosition);
-                var addedTiles =  AddNewTiles(_boardTiles);
-
-                BoardSequence sequence = new()
-                {
-                    MatchedPosition = matchedPosition,
-                    MovedTiles = movedTiles,
-                    AddedTiles = addedTiles,
-                    ScoreToAdd = tileScore
-                };
-
-                boardSequences.Add(sequence);
-                
-                matches = FindMatches(_boardTiles);
-            }
-            
-            return boardSequences;
+            return Cascade(_boardTiles);
         }
         
         #endregion
