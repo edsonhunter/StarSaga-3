@@ -58,7 +58,7 @@ namespace Gazeus.DesafioMatch3.Core
 
             while (HasMatch(matchedTiles))
             {
-                var matchedPosition = CollectMatches(newBoard, matchedTiles, out int tileScore);
+                var matchedPosition = AddMatchedPositions(newBoard, matchedTiles, out int tileScore);
                 var movedTiles = DropTiles(newBoard, matchedPosition);
                 var addedTiles = FillBoard(newBoard);
 
@@ -82,6 +82,27 @@ namespace Gazeus.DesafioMatch3.Core
         private void Swap(List<List<Tile>> board, int fromX, int fromY, int toX, int toY)
         {
             (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+        }
+        
+        private List<Vector2Int> AddMatchedPositions(List<List<Tile>> board, List<List<bool>> matchedTiles, out int totalScore)
+        {
+            List<Vector2Int> matchedPositions = new();
+            totalScore = 0;
+
+            for (int y = 0; y < board.Count; y++)
+            {
+                for (int x = 0; x < board[y].Count; x++)
+                {
+                    if (matchedTiles[y][x])
+                    {
+                        matchedPositions.Add(new Vector2Int(x, y));
+                        totalScore += board[y][x].Score;
+                        board[y][x] = new Tile { Id = -1, Type = -1, Score = -1 };
+                    }
+                }
+            }
+
+            return matchedPositions;
         }
 
         private static List<List<Tile>> CopyBoard(List<List<Tile>> boardToCopy)
