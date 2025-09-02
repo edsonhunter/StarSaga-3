@@ -963,7 +963,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scoreController: {fileID: 594535449}
   _boardView: {fileID: 429446043}
-  _stripedPowerUp: {fileID: 2142972046}
+  _stripLinePowerUp: {fileID: 2142972046}
+  _explodePowerUp: {fileID: 1645638004}
+  _colorPowerUp: {fileID: 0}
   _boardHeight: 10
   _boardWidth: 10
 --- !u!4 &1361904665
@@ -993,6 +995,7 @@ GameObject:
   - component: {fileID: 1645638003}
   - component: {fileID: 1645638002}
   - component: {fileID: 1645638001}
+  - component: {fileID: 1645638004}
   m_Layer: 5
   m_Name: Explode
   m_TagString: Untagged
@@ -1102,6 +1105,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1645637999}
   m_CullTransparentMesh: 1
+--- !u!114 &1645638004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645637999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0df04400834437ba5f100f66b35a941, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _button: {fileID: 1645638001}
 --- !u!1 &1686700137
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,6 +1264,7 @@ GameObject:
   - component: {fileID: 2111409275}
   - component: {fileID: 2111409274}
   - component: {fileID: 2111409273}
+  - component: {fileID: 2111409276}
   m_Layer: 5
   m_Name: Same color
   m_TagString: Untagged
@@ -1357,6 +1374,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2111409271}
   m_CullTransparentMesh: 1
+--- !u!114 &2111409276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111409271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0df04400834437ba5f100f66b35a941, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _button: {fileID: 2111409273}
 --- !u!1 &2142972041
 GameObject:
   m_ObjectHideFlags: 0

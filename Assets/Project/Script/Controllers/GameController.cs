@@ -5,6 +5,7 @@ using Gazeus.DesafioMatch3.Core;
 using Gazeus.DesafioMatch3.Models;
 using Gazeus.DesafioMatch3.Views;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Gazeus.DesafioMatch3.Controllers
 {
@@ -12,7 +13,9 @@ namespace Gazeus.DesafioMatch3.Controllers
     {
         [SerializeField] private ScoreController scoreController;
         [SerializeField] private BoardView _boardView;
-        [SerializeField] private StripedPowerUpController _stripedPowerUp;
+        [SerializeField] private PowerUpButtonController _stripLinePowerUp;
+        [SerializeField] private PowerUpButtonController _explodePowerUp;
+        [SerializeField] private PowerUpButtonController _colorPowerUp;
         [SerializeField] private int _boardHeight = 10;
         [SerializeField] private int _boardWidth = 10;
 
@@ -27,18 +30,20 @@ namespace Gazeus.DesafioMatch3.Controllers
         {
             _gameEngine = new GameService();
             _boardView.TileClicked += OnTileClick;
-            _stripedPowerUp.OnStripedPowerUp += ActivatePowerUp;
+            _stripLinePowerUp.OnPressed += ActivatePowerUp;
         }
         
         private void OnDestroy()
         {
             _boardView.TileClicked -= OnTileClick;
+            _stripLinePowerUp.OnPressed -= ActivatePowerUp;
         }
 
         private void Start()
         {
             List<List<Tile>> board = _gameEngine.StartGame(_boardWidth, _boardHeight);
             _boardView.CreateBoard(board);
+            _stripLinePowerUp.Initialize(new StripedPowerUp(true));
         }
         #endregion
 
