@@ -60,7 +60,7 @@ namespace Gazeus.DesafioMatch3.Core
             {
                 var matchedPosition = AddMatchedPositions(newBoard, matchedTiles, out int tileScore);
                 var movedTiles = MoveTiles(newBoard, matchedPosition);
-                var addedTiles = FillBoard(newBoard);
+                var addedTiles = AddNewTiles(newBoard);
 
                 BoardSequence sequence = new()
                 {
@@ -146,6 +146,35 @@ namespace Gazeus.DesafioMatch3.Core
             }
 
             return movedTilesList;
+        }
+        
+        private List<AddedTileInfo> AddNewTiles(List<List<Tile>> board)
+        {
+            List<AddedTileInfo> addedTiles = new();
+
+            for (int y = board.Count - 1; y >= 0; y--)
+            {
+                for (int x = board[y].Count - 1; x >= 0; x--)
+                {
+                    if (board[y][x].Type == -1)
+                    {
+                        int tileType = Random.Range(0, _tilesTypes.Count);
+
+                        Tile tile = board[y][x];
+                        tile.Id = _tileCount++;
+                        tile.Type = _tilesTypes[tileType];
+                        tile.Score = tile.Type * 10;
+
+                        addedTiles.Add(new AddedTileInfo
+                        {
+                            Position = new Vector2Int(x, y),
+                            Type = tile.Type
+                        });
+                    }
+                }
+            }
+
+            return addedTiles;
         }
 
         private static List<List<Tile>> CopyBoard(List<List<Tile>> boardToCopy)
