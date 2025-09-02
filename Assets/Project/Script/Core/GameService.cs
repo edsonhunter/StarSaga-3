@@ -59,7 +59,7 @@ namespace Gazeus.DesafioMatch3.Core
             while (HasMatch(matchedTiles))
             {
                 var matchedPosition = AddMatchedPositions(newBoard, matchedTiles, out int tileScore);
-                var movedTiles = DropTiles(newBoard, matchedPosition);
+                var movedTiles = MoveTiles(newBoard, matchedPosition);
                 var addedTiles = FillBoard(newBoard);
 
                 BoardSequence sequence = new()
@@ -103,6 +103,49 @@ namespace Gazeus.DesafioMatch3.Core
             }
 
             return matchedPositions;
+        }
+        
+        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2Int> matchedPositions)
+        {
+            Dictionary<int, MovedTileInfo> movedTiles = new();
+            List<MovedTileInfo> movedTilesList = new();
+
+            foreach (var pos in matchedPositions)
+            {
+                int x = pos.x;
+                int y = pos.y;
+
+                if (y > 0)
+                {
+                    for (int j = y; j > 0; j--)
+                    {
+                        Tile movedTile = board[j - 1][x];
+                        board[j][x] = movedTile;
+
+                        if (movedTile.Type > -1)
+                        {
+                            if (movedTiles.ContainsKey(movedTile.Id))
+                            {
+                                movedTiles[movedTile.Id].To = new Vector2Int(x, j);
+                            }
+                            else
+                            {
+                                var movedTileInfo = new MovedTileInfo
+                                {
+                                    From = new Vector2Int(x, j - 1),
+                                    To = new Vector2Int(x, j)
+                                };
+                                movedTiles.Add(movedTile.Id, movedTileInfo);
+                                movedTilesList.Add(movedTileInfo);
+                            }
+                        }
+                    }
+
+                    board[0][x] = new Tile { Id = -1, Type = -1, Score = -1 };
+                }
+            }
+
+            return movedTilesList;
         }
 
         private static List<List<Tile>> CopyBoard(List<List<Tile>> boardToCopy)
