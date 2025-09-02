@@ -10,19 +10,23 @@ namespace Gazeus.DesafioMatch3.Views
         public event Action<int, int> Clicked;
 
         [SerializeField] private Button _button;
-
+        [SerializeField] private GameObject _highlight;
+        
         private int _x;
         private int _y;
-
+        private bool _isHighlighted;
+        
         #region Unity
         private void Awake()
         {
             _button.onClick.AddListener(OnTileClick);
+            _highlight.SetActive(false);
         }
         #endregion
 
         public Tween AnimatedSetTile(GameObject tile)
         {
+            SetHighlight(false);
             tile.transform.SetParent(transform);
             tile.transform.DOKill();
 
@@ -40,9 +44,22 @@ namespace Gazeus.DesafioMatch3.Views
             tile.transform.SetParent(transform, false);
             tile.transform.position = transform.position;
         }
+        
+        public void ToggleHighlight()
+        {
+            _isHighlighted = !_isHighlighted;
+            _highlight.SetActive(_isHighlighted);
+        }
+        
+        public void SetHighlight(bool value)
+        {
+            _isHighlighted = value;
+            _highlight.SetActive(_isHighlighted);
+        }
 
         private void OnTileClick()
         {
+            ToggleHighlight();
             Clicked?.Invoke(_x, _y);
         }
     }
