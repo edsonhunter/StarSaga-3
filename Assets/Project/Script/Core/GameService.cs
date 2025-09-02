@@ -9,6 +9,7 @@ namespace Gazeus.DesafioMatch3.Core
         private List<List<Tile>> _boardTiles;
         private List<int> _tilesTypes;
         private int _tileCount;
+        private PowerUp _powerUp;
 
         public bool IsValidMovement(int fromX, int fromY, int toX, int toY)
         {
@@ -291,5 +292,58 @@ namespace Gazeus.DesafioMatch3.Core
 
             return false;
         }
+
+        #region PowerUp
+        
+        public void ActivatePowerUp(PowerUp powerUp)
+        {
+            _powerUp = powerUp;
+        }
+
+        public List<BoardSequence> UsePowerUp(int x, int y)
+        {
+            List<BoardSequence> boardSequences = new();
+            if (_powerUp == null) return boardSequences;
+
+            List<Vector2Int> affectedTiles =
+                _powerUp.Activate(new PowerUpInfo { Board = _boardTiles, OriginX = x, OriginY = y });
+
+            foreach (var pos in affectedTiles)
+            {
+                _boardTiles[pos.y][pos.x] = new Tile
+                {
+                    Id = -1,
+                    Type = -1,
+                    Score = -1
+                };
+            }
+
+            _powerUp = null; // reset after use
+
+            List<List<bool>> matches = FindMatches(_boardTiles);
+
+            while (HasMatch(matches))
+            {
+                var matchedPosition = AddMatchedPositions(_boardTiles, matches, out int tileScore);
+                var movedTiles =  MoveTiles(_boardTiles, matchedPosition);
+                var addedTiles =  AddNewTiles(_boardTiles);
+
+                BoardSequence sequence = new()
+                {
+                    MatchedPosition = matchedPosition,
+                    MovedTiles = movedTiles,
+                    AddedTiles = addedTiles,
+                    ScoreToAdd = tileScore
+                };
+
+                boardSequences.Add(sequence);
+                
+                matches = FindMatches(_boardTiles);
+            }
+            
+            return boardSequences;
+        }
+        
+        #endregion
     }
 }

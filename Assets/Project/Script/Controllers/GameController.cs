@@ -12,11 +12,13 @@ namespace Gazeus.DesafioMatch3.Controllers
     {
         [SerializeField] private ScoreController scoreController;
         [SerializeField] private BoardView _boardView;
+        [SerializeField] private StripedPowerUpController _stripedPowerUp;
         [SerializeField] private int _boardHeight = 10;
         [SerializeField] private int _boardWidth = 10;
 
         private GameService _gameEngine;
         private bool _isAnimating;
+        private bool _powerUpActivated;
         private int _selectedX = -1;
         private int _selectedY = -1;
 
@@ -25,8 +27,9 @@ namespace Gazeus.DesafioMatch3.Controllers
         {
             _gameEngine = new GameService();
             _boardView.TileClicked += OnTileClick;
+            _stripedPowerUp.OnStripedPowerUp += ActivatePowerUp;
         }
-
+        
         private void OnDestroy()
         {
             _boardView.TileClicked -= OnTileClick;
@@ -64,6 +67,13 @@ namespace Gazeus.DesafioMatch3.Controllers
         {
             if (_isAnimating) return;
 
+            if (_powerUpActivated)
+            {
+                _isAnimating = true;
+                List<BoardSequence> powerUpResult = _gameEngine.UsePowerUp(x, y);
+                AnimateBoard(powerUpResult, 0, () => _isAnimating = false);
+                return;
+            }
             if (_selectedX > -1 && _selectedY > -1)
             {
                 if (Mathf.Abs(_selectedX - x) + Mathf.Abs(_selectedY - y) > 1)
@@ -96,6 +106,12 @@ namespace Gazeus.DesafioMatch3.Controllers
                 _selectedX = x;
                 _selectedY = y;
             }
+        }
+        
+        private void ActivatePowerUp(PowerUp powerUp)
+        {
+            _powerUpActivated = true;
+            _gameEngine.ActivatePowerUp(powerUp);
         }
     }
 }
