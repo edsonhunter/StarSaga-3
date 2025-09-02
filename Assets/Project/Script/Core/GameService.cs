@@ -64,31 +64,34 @@ namespace Gazeus.DesafioMatch3.Core
             (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
         }
         
-        private List<BoardSequence> Cascade(List<List<Tile>> boardTiles)
+        private List<BoardSequence> Cascade(List<List<Tile>> board)
         {
-            List<BoardSequence> boardSequences = new();
-            List<List<bool>> matches = FindMatches(boardTiles);
+            var boardSequences = new List<BoardSequence>();
 
-            while (HasMatch(matches))
+            while (true)
             {
-                var matchedPosition = AddMatchedPositions(boardTiles, matches, out int tileScore);
-                var movedTiles =  MoveTiles(boardTiles);
-                var addedTiles =  AddNewTiles(boardTiles);
+                var matches = FindMatches(board);
+                
+                if (!HasMatch(matches))
+                    break;
+                
+                List<Vector2Int> matchedPositions = AddMatchedPositions(board, matches, out int scoreToAdd);
+                List<MovedTileInfo> movedTiles = MoveTiles(board, matchedPositions);
+                List<AddedTileInfo> addedTiles = AddNewTiles(board);
 
-                BoardSequence sequence = new()
+                var seq = new BoardSequence
                 {
-                    MatchedPosition = matchedPosition,
+                    MatchedPosition = matchedPositions,
                     MovedTiles = movedTiles,
                     AddedTiles = addedTiles,
-                    ScoreToAdd = tileScore
+                    ScoreToAdd = scoreToAdd
                 };
 
-                boardSequences.Add(sequence);
-                
-                matches = FindMatches(boardTiles);
+                boardSequences.Add(seq);
             }
 
-            _boardTiles = boardTiles;
+            _boardTiles = board;
+
             return boardSequences;
         }
         
@@ -113,41 +116,65 @@ namespace Gazeus.DesafioMatch3.Core
             return matchedPositions;
         }
         
-        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board)
+        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2Int> matchedPositions)
         {
-            List<MovedTileInfo> movedTilesList = new();
-
-            int width = board[0].Count;
+            var moved = new List<MovedTileInfo>();
             int height = board.Count;
+            int width  = board[0].Count;
 
-            for (int x = 0; x < width; x++)
+            // Build a fast lookup of matched rows by column
+            var matchedByColumn = new Dictionary<int, HashSet<int>>();
+            foreach (var p in matchedPositions)
             {
-                int writeY = height - 1;
+                if (!matchedByColumn.TryGetValue(p.x, out var rows))
+                {
+                    rows = new HashSet<int>();
+                    matchedByColumn[p.x] = rows;
+                }
+                rows.Add(p.y);
+            }
 
+            // Only process columns that actually had matched tiles
+            foreach (var kv in matchedByColumn)
+            {
+                int x = kv.Key;
+                var matchedRows = kv.Value;
+
+                int writeY = height - 1; // lowest slot we can write into
+
+                // Compact this column: skip matched (empties), pack non-empty tiles down
                 for (int y = height - 1; y >= 0; y--)
                 {
-                    Tile currentTile = board[y][x];
+                    // Treat matched cells as empty; never try to move from them
+                    if (matchedRows.Contains(y)) continue;
 
-                    if (currentTile.Type != -1)
+                    var tile = board[y][x];
+                    if (tile.Type == -1) continue; // already empty, nothing to move
+
+                    if (y != writeY)
                     {
-                        if (y != writeY)
+                        // Move tile down to writeY
+                        board[writeY][x] = tile;
+                        board[y][x] = new Tile { Id = -1, Type = -1, Score = 0 };
+
+                        moved.Add(new MovedTileInfo
                         {
-                            board[writeY][x] = currentTile;
-                            board[y][x] = new Tile { Id = -1, Type = -1, Score = -1 };
-
-                            movedTilesList.Add(new MovedTileInfo
-                            {
-                                From = new Vector2Int(x, y),
-                                To = new Vector2Int(x, writeY)
-                            });
-                        }
-
-                        writeY--;
+                            From = new Vector2Int(x, y),
+                            To   = new Vector2Int(x, writeY)
+                        });
                     }
+
+                    writeY--;
+                }
+
+                // Everything above the last written tile becomes empty
+                for (int y = writeY; y >= 0; y--)
+                {
+                    board[y][x] = new Tile { Id = -1, Type = -1, Score = 0 };
                 }
             }
 
-            return movedTilesList;
+            return moved;
         }
         
         private List<AddedTileInfo> AddNewTiles(List<List<Tile>> board)
