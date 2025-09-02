@@ -68,7 +68,7 @@ namespace Gazeus.DesafioMatch3.Core
                         if (matchedTiles[y][x])
                         {
                             matchedPosition.Add(new Vector2Int(x, y));
-                            tileScore = _boardTiles[y][x].Score;
+                            tileScore += _boardTiles[y][x].Score;
                             newBoard[y][x] = new Tile { Id = -1, Type = -1 };
                         }
                     }
