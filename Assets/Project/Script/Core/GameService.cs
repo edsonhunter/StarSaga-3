@@ -51,105 +51,31 @@ namespace Gazeus.DesafioMatch3.Core
         {
             List<List<Tile>> newBoard = CopyBoard(_boardTiles);
 
-            (newBoard[toY][toX], newBoard[fromY][fromX]) = (newBoard[fromY][fromX], newBoard[toY][toX]);
+            Swap(newBoard, fromX, fromY, toX, toY);
 
             List<BoardSequence> boardSequences = new();
             List<List<bool>> matchedTiles = FindMatches(newBoard);
 
             while (HasMatch(matchedTiles))
             {
-                //Cleaning the matched tiles
-                List<Vector2Int> matchedPosition = new();
-                int tileScore = 0;
-                for (int y = 0; y < newBoard.Count; y++)
-                {
-                    for (int x = 0; x < newBoard[y].Count; x++)
-                    {
-                        if (matchedTiles[y][x])
-                        {
-                            matchedPosition.Add(new Vector2Int(x, y));
-                            tileScore += _boardTiles[y][x].Score;
-                            newBoard[y][x] = new Tile { Id = -1, Type = -1 };
-                        }
-                    }
-                }
-
-                // Dropping the tiles
-                Dictionary<int, MovedTileInfo> movedTiles = new();
-                List<MovedTileInfo> movedTilesList = new();
-                for (int i = 0; i < matchedPosition.Count; i++)
-                {
-                    int x = matchedPosition[i].x;
-                    int y = matchedPosition[i].y;
-                    if (y > 0)
-                    {
-                        for (int j = y; j > 0; j--)
-                        {
-                            Tile movedTile = newBoard[j - 1][x];
-                            newBoard[j][x] = movedTile;
-                            if (movedTile.Type > -1)
-                            {
-                                if (movedTiles.ContainsKey(movedTile.Id))
-                                {
-                                    movedTiles[movedTile.Id].To = new Vector2Int(x, j);
-                                }
-                                else
-                                {
-                                    MovedTileInfo movedTileInfo = new()
-                                    {
-                                        From = new Vector2Int(x, j - 1),
-                                        To = new Vector2Int(x, j)
-                                    };
-                                    movedTiles.Add(movedTile.Id, movedTileInfo);
-                                    movedTilesList.Add(movedTileInfo);
-                                }
-                            }
-                        }
-
-                        newBoard[0][x] = new Tile
-                        {
-                            Id = -1,
-                            Type = -1,
-                            Score = -1
-                        };
-                    }
-                }
-
-                // Filling the board
-                List<AddedTileInfo> addedTiles = new();
-                for (int y = newBoard.Count - 1; y > -1; y--)
-                {
-                    for (int x = newBoard[y].Count - 1; x > -1; x--)
-                    {
-                        if (newBoard[y][x].Type == -1)
-                        {
-                            int tileType = Random.Range(0, _tilesTypes.Count);
-                            Tile tile = newBoard[y][x];
-                            tile.Id = _tileCount++;
-                            tile.Type = _tilesTypes[tileType];
-                            tile.Score = tile.Type * 10;
-                            addedTiles.Add(new AddedTileInfo
-                            {
-                                Position = new Vector2Int(x, y),
-                                Type = tile.Type
-                            });
-                        }
-                    }
-                }
+                var matchedPosition = CollectMatches(newBoard, matchedTiles, out int tileScore);
+                var movedTiles = DropTiles(newBoard, matchedPosition);
+                var addedTiles = FillBoard(newBoard);
 
                 BoardSequence sequence = new()
                 {
                     MatchedPosition = matchedPosition,
-                    MovedTiles = movedTilesList,
+                    MovedTiles = movedTiles,
                     AddedTiles = addedTiles,
                     ScoreToAdd = tileScore
                 };
+
                 boardSequences.Add(sequence);
+
                 matchedTiles = FindMatches(newBoard);
             }
 
             _boardTiles = newBoard;
-
             return boardSequences;
         }
 
