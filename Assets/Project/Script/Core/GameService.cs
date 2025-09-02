@@ -78,6 +78,11 @@ namespace Gazeus.DesafioMatch3.Core
             _boardTiles = newBoard;
             return boardSequences;
         }
+        
+        private void Swap(List<List<Tile>> board, int fromX, int fromY, int toX, int toY)
+        {
+            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+        }
 
         private static List<List<Tile>> CopyBoard(List<List<Tile>> boardToCopy)
         {
