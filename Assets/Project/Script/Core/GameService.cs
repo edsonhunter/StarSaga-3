@@ -72,7 +72,7 @@ namespace Gazeus.DesafioMatch3.Core
             while (HasMatch(matches))
             {
                 var matchedPosition = AddMatchedPositions(boardTiles, matches, out int tileScore);
-                var movedTiles =  MoveTiles(boardTiles, matchedPosition);
+                var movedTiles =  MoveTiles(boardTiles);
                 var addedTiles =  AddNewTiles(boardTiles);
 
                 BoardSequence sequence = new()
@@ -113,43 +113,37 @@ namespace Gazeus.DesafioMatch3.Core
             return matchedPositions;
         }
         
-        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2Int> matchedPositions)
+        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board)
         {
-            Dictionary<int, MovedTileInfo> movedTiles = new();
             List<MovedTileInfo> movedTilesList = new();
 
-            foreach (var pos in matchedPositions)
+            int width = board[0].Count;
+            int height = board.Count;
+
+            for (int x = 0; x < width; x++)
             {
-                int x = pos.x;
-                int y = pos.y;
+                int writeY = height - 1;
 
-                if (y > 0)
+                for (int y = height - 1; y >= 0; y--)
                 {
-                    for (int j = y; j > 0; j--)
+                    Tile currentTile = board[y][x];
+
+                    if (currentTile.Type != -1)
                     {
-                        Tile movedTile = board[j - 1][x];
-                        board[j][x] = movedTile;
-
-                        if (movedTile.Type > -1)
+                        if (y != writeY)
                         {
-                            if (movedTiles.ContainsKey(movedTile.Id))
-                            {
-                                movedTiles[movedTile.Id].To = new Vector2Int(x, j);
-                            }
-                            else
-                            {
-                                var movedTileInfo = new MovedTileInfo
-                                {
-                                    From = new Vector2Int(x, j - 1),
-                                    To = new Vector2Int(x, j)
-                                };
-                                movedTiles.Add(movedTile.Id, movedTileInfo);
-                                movedTilesList.Add(movedTileInfo);
-                            }
-                        }
-                    }
+                            board[writeY][x] = currentTile;
+                            board[y][x] = new Tile { Id = -1, Type = -1, Score = -1 };
 
-                    board[0][x] = new Tile { Id = -1, Type = -1, Score = -1 };
+                            movedTilesList.Add(new MovedTileInfo
+                            {
+                                From = new Vector2Int(x, y),
+                                To = new Vector2Int(x, writeY)
+                            });
+                        }
+
+                        writeY--;
+                    }
                 }
             }
 
