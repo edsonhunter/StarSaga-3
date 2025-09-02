@@ -60,6 +60,7 @@ namespace Gazeus.DesafioMatch3.Core
             {
                 //Cleaning the matched tiles
                 List<Vector2Int> matchedPosition = new();
+                int tileScore = 0;
                 for (int y = 0; y < newBoard.Count; y++)
                 {
                     for (int x = 0; x < newBoard[y].Count; x++)
@@ -67,6 +68,7 @@ namespace Gazeus.DesafioMatch3.Core
                         if (matchedTiles[y][x])
                         {
                             matchedPosition.Add(new Vector2Int(x, y));
+                            tileScore = _boardTiles[y][x].Score;
                             newBoard[y][x] = new Tile { Id = -1, Type = -1 };
                         }
                     }
@@ -107,7 +109,8 @@ namespace Gazeus.DesafioMatch3.Core
                         newBoard[0][x] = new Tile
                         {
                             Id = -1,
-                            Type = -1
+                            Type = -1,
+                            Score = -1
                         };
                     }
                 }
@@ -124,6 +127,7 @@ namespace Gazeus.DesafioMatch3.Core
                             Tile tile = newBoard[y][x];
                             tile.Id = _tileCount++;
                             tile.Type = _tilesTypes[tileType];
+                            tile.Score = tile.Type * 10;
                             addedTiles.Add(new AddedTileInfo
                             {
                                 Position = new Vector2Int(x, y),
@@ -137,7 +141,8 @@ namespace Gazeus.DesafioMatch3.Core
                 {
                     MatchedPosition = matchedPosition,
                     MovedTiles = movedTilesList,
-                    AddedTiles = addedTiles
+                    AddedTiles = addedTiles,
+                    ScoreToAdd = tileScore
                 };
                 boardSequences.Add(sequence);
                 matchedTiles = FindMatches(newBoard);
@@ -157,7 +162,7 @@ namespace Gazeus.DesafioMatch3.Core
                 for (int x = 0; x < boardToCopy[y].Count; x++)
                 {
                     Tile tile = boardToCopy[y][x];
-                    newBoard[y].Add(new Tile { Id = tile.Id, Type = tile.Type });
+                    newBoard[y].Add(new Tile { Id = tile.Id, Type = tile.Type, Score = tile.Score });
                 }
             }
 
@@ -173,7 +178,7 @@ namespace Gazeus.DesafioMatch3.Core
                 board.Add(new List<Tile>(width));
                 for (int x = 0; x < width; x++)
                 {
-                    board[y].Add(new Tile { Id = -1, Type = -1 });
+                    board[y].Add(new Tile { Id = -1, Type = -1, Score = -1});
                 }
             }
 
@@ -201,6 +206,7 @@ namespace Gazeus.DesafioMatch3.Core
 
                     board[y][x].Id = _tileCount++;
                     board[y][x].Type = noMatchTypes[Random.Range(0, noMatchTypes.Count)];
+                    board[y][x].Score = board[y][x].Type * 10;
                 }
             }
 
