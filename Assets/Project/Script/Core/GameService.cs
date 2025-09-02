@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Gazeus.DesafioMatch3.Models;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Gazeus.DesafioMatch3.Core
 {
@@ -302,8 +304,7 @@ namespace Gazeus.DesafioMatch3.Core
 
         public List<BoardSequence> UsePowerUp(int x, int y)
         {
-            List<BoardSequence> boardSequences = new();
-            if (_powerUp == null) return boardSequences;
+            if (_powerUp == null) throw new InvalidOperationException("Cannot use PowerUp without PowerUp");
 
             List<Vector2Int> affectedTiles =
                 _powerUp.Activate(new PowerUpInfo { Board = _boardTiles, FromX = x, FromY = y });
@@ -319,7 +320,12 @@ namespace Gazeus.DesafioMatch3.Core
             }
 
             _powerUp = null; // reset after use
+            return Cascade();
+        }
 
+        private List<BoardSequence> Cascade()
+        {
+            List<BoardSequence> boardSequences = new();
             List<List<bool>> matches = FindMatches(_boardTiles);
 
             while (HasMatch(matches))

@@ -32,8 +32,7 @@ namespace Gazeus.DesafioMatch3.Views
 
                 for (int x = 0; x < board[0].Count; x++)
                 {
-                    TileSpotView tileSpot = Instantiate(_tileSpotPrefab);
-                    tileSpot.transform.SetParent(_boardContainer.transform, false);
+                    TileSpotView tileSpot = Instantiate(_tileSpotPrefab, _boardContainer.transform, false);
                     tileSpot.SetPosition(x, y);
                     tileSpot.Clicked += TileSpot_Clicked;
 
