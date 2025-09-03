@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +8,8 @@ namespace Gazeus.DesafioMatch3.Views
 {
     public class TileSpotView : MonoBehaviour
     {
+        public static readonly HashSet<TileSpotView> HighlightedTiles = new();
+        
         public event Action<int, int> Clicked;
 
         [SerializeField] private Button _button;
@@ -26,7 +29,6 @@ namespace Gazeus.DesafioMatch3.Views
 
         public Tween AnimatedSetTile(GameObject tile)
         {
-            SetHighlight(false);
             tile.transform.SetParent(transform);
             tile.transform.DOKill();
 
@@ -47,14 +49,20 @@ namespace Gazeus.DesafioMatch3.Views
         
         public void ToggleHighlight()
         {
-            _isHighlighted = !_isHighlighted;
-            _highlight.SetActive(_isHighlighted);
+            SetHighlight(!_isHighlighted);
         }
         
         public void SetHighlight(bool value)
         {
+            if (_isHighlighted == value) return;
+            
             _isHighlighted = value;
-            _highlight.SetActive(value);
+            _highlight?.SetActive(value);
+            
+            if (value)
+                HighlightedTiles.Add(this);
+            else
+                HighlightedTiles.Remove(this);
         }
 
         private void OnTileClick()

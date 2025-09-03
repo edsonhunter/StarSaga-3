@@ -62,6 +62,8 @@ namespace Gazeus.DesafioMatch3.Controllers
 
         private void AnimateBoard(List<BoardSequence> boardSequences, int index, Action onComplete)
         {
+            ResetHints();
+            
             BoardSequence boardSequence = boardSequences[index];
 
             Sequence sequence = DOTween.Sequence();
@@ -77,7 +79,11 @@ namespace Gazeus.DesafioMatch3.Controllers
             }
             else
             {
-                sequence.onComplete += () => onComplete();
+                sequence.onComplete += () =>
+                {
+                    ResetHints();
+                    onComplete();
+                };
             }
         }
 
@@ -156,6 +162,13 @@ namespace Gazeus.DesafioMatch3.Controllers
                 }
             }
             catch (TaskCanceledException) { }
+        }
+        
+        private void ResetHints()
+        {
+            _cancellationTokenSource?.Cancel();
+            _boardView.ClearAllHighlights(); // optional helper in BoardView
+            StartHintLoop();
         }
     }
 }

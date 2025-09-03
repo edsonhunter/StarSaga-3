@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using Gazeus.DesafioMatch3.Models;
 using Gazeus.DesafioMatch3.ScriptableObjects;
@@ -149,6 +150,14 @@ namespace Gazeus.DesafioMatch3.Views
                     _tileSpots[pos.y][pos.x].SetHighlight(false);
                 }
             });
+        }
+        
+        public void ClearAllHighlights()
+        {
+            foreach (var spot in TileSpotView.HighlightedTiles.ToList())
+            {
+                spot.SetHighlight(false);
+            }
         }
 
         #region Events
