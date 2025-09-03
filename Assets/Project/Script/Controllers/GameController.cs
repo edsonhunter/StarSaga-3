@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using DG.Tweening;
 using Gazeus.DesafioMatch3.Core;
 using Gazeus.DesafioMatch3.Models;
@@ -25,6 +27,8 @@ namespace Gazeus.DesafioMatch3.Controllers
         private int _selectedX = -1;
         private int _selectedY = -1;
 
+        private CancellationTokenSource _cancellationTokenSource;
+        
         #region Unity
         private void Awake()
         {
@@ -41,6 +45,7 @@ namespace Gazeus.DesafioMatch3.Controllers
             _stripLinePowerUp.OnPressed -= ActivatePowerUp;
             _explodePowerUp.OnPressed -= ActivatePowerUp;
             _colorPowerUp.OnPressed -= ActivatePowerUp;
+            _cancellationTokenSource?.Cancel();
         }
 
         private void Start()
@@ -50,6 +55,8 @@ namespace Gazeus.DesafioMatch3.Controllers
             _stripLinePowerUp.Initialize(new StripedPowerUp(true));
             _explodePowerUp.Initialize(new ExplodePowerUp(2));
             _colorPowerUp.Initialize(new ColorPowerUp());
+
+            StartHintLoop();
         }
         #endregion
 
@@ -128,6 +135,27 @@ namespace Gazeus.DesafioMatch3.Controllers
             if (_powerUpActivated) return;
             _powerUpActivated = true;
             _gameEngine.ActivatePowerUp(powerUp);
+        }
+
+        private async void StartHintLoop()
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5), token);
+
+                    var hint = _gameEngine.LookForHint();
+                    if (hint.Count > 0 && !_isAnimating)
+                    {
+                        _boardView.HighlightHint(hint);
+                    }
+                }
+            }
+            catch (TaskCanceledException) { }
         }
     }
 }

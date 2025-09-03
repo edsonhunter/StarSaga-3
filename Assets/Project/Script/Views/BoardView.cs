@@ -134,6 +134,22 @@ namespace Gazeus.DesafioMatch3.Views
                 _tileSpots[selectedY][selectedX].ToggleHighlight();
             }
         }
+        
+        public void HighlightHint(List<Vector2Int> hint)
+        {
+            foreach (var pos in hint)
+            {
+                _tileSpots[pos.y][pos.x].SetHighlight(true);
+            }
+
+            DOVirtual.DelayedCall(2f, () =>
+            {
+                foreach (var pos in hint)
+                {
+                    _tileSpots[pos.y][pos.x].SetHighlight(false);
+                }
+            });
+        }
 
         #region Events
         private void TileSpot_Clicked(int x, int y)

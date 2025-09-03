@@ -346,6 +346,26 @@ namespace Gazeus.DesafioMatch3.Core
 
             return false;
         }
+        
+        public List<Vector2Int> LookForHint()
+        {
+            int height = _boardTiles.Count;
+            int width = _boardTiles[0].Count;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (x < width - 1 && IsValidMovement(x, y, x + 1, y))
+                        return new List<Vector2Int> { new(x, y), new(x + 1, y) };
+
+                    if (y < height - 1 && IsValidMovement(x, y, x, y + 1))
+                        return new List<Vector2Int> { new(x, y), new(x, y + 1) };
+                }
+            }
+
+            return new List<Vector2Int>();
+        }
 
         #region PowerUp
         
