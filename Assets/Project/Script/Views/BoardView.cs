@@ -105,9 +105,9 @@ namespace Gazeus.DesafioMatch3.Views
 
                 Vector2Int from = movedTileInfo.From;
                 Vector2Int to = movedTileInfo.To;
-
+                
                 sequence.Join(_tileSpots[to.y][to.x].AnimatedSetTile(_tiles[from.y][from.x]));
-
+                
                 tiles[to.y][to.x] = _tiles[from.y][from.x];
             }
 
@@ -126,12 +126,23 @@ namespace Gazeus.DesafioMatch3.Views
 
             return sequence;
         }
+        
+        public void HighlightTile(int selectedX, int selectedY)
+        {
+            if (selectedX >= 0 && selectedY >= 0)
+            {
+                _tileSpots[selectedY][selectedX].ToggleHighlight();
+            }
+        }
 
         #region Events
         private void TileSpot_Clicked(int x, int y)
         {
-            TileClicked(x, y);
+            HighlightTile(x,y);
+            TileClicked?.Invoke(x, y);
         }
         #endregion
+
+        
     }
 }

@@ -54,12 +54,11 @@ namespace Gazeus.DesafioMatch3.Views
         public void SetHighlight(bool value)
         {
             _isHighlighted = value;
-            _highlight.SetActive(_isHighlighted);
+            _highlight.SetActive(value);
         }
 
         private void OnTileClick()
         {
-            ToggleHighlight();
             Clicked?.Invoke(_x, _y);
         }
     }
