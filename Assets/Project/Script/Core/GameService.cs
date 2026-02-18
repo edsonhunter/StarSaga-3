@@ -385,11 +385,10 @@ namespace StarSaga3.Project.Script.Core
             var info = new PowerUpInfo { Board = _boardTiles, FromX =  x, FromY = y };
 
             List<Vector2> affected = new List<Vector2>();
-            // Assuming PowerUp.Activate returns List<UnityEngine.Vector2Int>
             var rawAffected = _powerUp.Activate(info);
             if (rawAffected != null)
             {
-                foreach (var v in rawAffected) affected.Add(new Vector2(v.x, v.y));
+                affected.AddRange(rawAffected);
             }
 
             _powerUp = null;

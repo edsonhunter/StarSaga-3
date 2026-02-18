@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+using System.Numerics;
 
 namespace StarSaga3.Project.Script.Models
 {
@@ -7,7 +7,7 @@ namespace StarSaga3.Project.Script.Models
     {
         public List<MovedTileInfo> MovedTiles { get; set; }
         public List<AddedTileInfo> AddedTiles { get; set; }
-        public List<Vector2Int> MatchedPosition { get; set; }
+        public List<Vector2> MatchedPosition { get; set; }
         public int ScoreToAdd { get; set; }
     }
 }

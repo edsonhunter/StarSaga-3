@@ -16,6 +16,8 @@ namespace StarSaga3.Project.Script.Core
         void AnimateExplosion(List<Vector2> positions, float duration, Action onComplete);
         void AnimateSpawn(List<(Vector2 pos, int type)> spawns, float duration, Action onComplete);
         void SetHighlight(int x, int y, bool active);
+        void HighlightHint(List<Vector2> positions);
+        void ClearHighlights();
     }
 
     public interface IGameService
@@ -24,6 +26,8 @@ namespace StarSaga3.Project.Script.Core
         bool IsValidMovement(int x1, int y1, int x2, int y2);
         List<BoardSequence> SwapTile(int x1, int y1, int x2, int y2);
         List<Vector2> LookForHint();
+        void ActivatePowerUp(PowerUp.PowerUp powerUp);
+        List<BoardSequence> UsePowerUp(int x, int y);
     }
 
     public static class Constants

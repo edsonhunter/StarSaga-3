@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using StarSaga3.Project.Script.Models;
-using UnityEngine;
 
 namespace StarSaga3.Project.Script.Core.PowerUp
 {
@@ -13,20 +13,20 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             _isHorizontal = isHorizontal;
         }
 
-        public override List<Vector2Int> Activate(PowerUpInfo powerUpInfo)
+        public override List<Vector2> Activate(PowerUpInfo powerUpInfo)
         {
             var board =  powerUpInfo.Board;
             var x = powerUpInfo.FromX;
             var y = powerUpInfo.FromY;
             
-            List<Vector2Int> affectedTiles = new();
+            List<Vector2> affectedTiles = new();
 
             if (_isHorizontal)
             {
                 // Clear the entire row
                 for (int col = 0; col < board[y].Count; col++)
                 {
-                    affectedTiles.Add(new Vector2Int(col, y));
+                    affectedTiles.Add(new Vector2(col, y));
                 }
             }
             else
@@ -34,7 +34,7 @@ namespace StarSaga3.Project.Script.Core.PowerUp
                 // Clear the entire column
                 for (int row = 0; row < board.Count; row++)
                 {
-                    affectedTiles.Add(new Vector2Int(x, row));
+                    affectedTiles.Add(new Vector2(x, row));
                 }
             }
 

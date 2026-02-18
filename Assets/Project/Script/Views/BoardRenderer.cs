@@ -207,6 +207,35 @@ namespace StarSaga3.Project.Script.Views
             }
         }
 
+        public void HighlightHint(List<System.Numerics.Vector2> positions)
+        {
+            foreach (var p in positions)
+            {
+                SetHighlight((int)p.X, (int)p.Y, true);
+            }
+
+            // Auto turn off after 2 seconds
+            DOVirtual.DelayedCall(2f, () =>
+            {
+                foreach (var p in positions)
+                {
+                    SetHighlight((int)p.X, (int)p.Y, false);
+                }
+            });
+        }
+
+        public void ClearHighlights()
+        {
+            foreach (var tile in _visualTiles)
+            {
+                if (tile.IsHighlighted)
+                {
+                    tile.IsHighlighted = false;
+                    _isDirty = true;
+                }
+            }
+        }
+
         private void HandleInput()
         {
             if (Input.GetMouseButtonDown(0))

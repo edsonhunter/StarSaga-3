@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using StarSaga3.Project.Script.Models;
-using UnityEngine;
 
 namespace StarSaga3.Project.Script.Core.PowerUp
 {
@@ -13,13 +13,13 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             _radius = radius;
         }
 
-        public override List<Vector2Int> Activate(PowerUpInfo powerUpInfo)
+        public override List<Vector2> Activate(PowerUpInfo powerUpInfo)
         {
             var board =  powerUpInfo.Board;
             var x = powerUpInfo.FromX;
             var y = powerUpInfo.FromY;
             
-            List<Vector2Int> affectedTiles = new();
+            List<Vector2> affectedTiles = new();
             int height = board.Count;
             int width = board[0].Count;
 
@@ -29,7 +29,7 @@ namespace StarSaga3.Project.Script.Core.PowerUp
                 {
                     if (row >= 0 && row < height && col >= 0 && col < width)
                     {
-                        affectedTiles.Add(new Vector2Int(col, row));
+                        affectedTiles.Add(new Vector2(col, row));
                     }
                 }
             }
