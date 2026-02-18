@@ -14,14 +14,14 @@ namespace StarSaga3.Project.Script.Controllers
     public class GameController : MonoBehaviour
     {
         [SerializeField] private ScoreController scoreController;
-        [SerializeField] private BoardView _boardView;
+        [SerializeField] private BoardRenderer _boardView;
         [SerializeField] private PowerUpButtonController _stripLinePowerUp;
         [SerializeField] private PowerUpButtonController _explodePowerUp;
         [SerializeField] private PowerUpButtonController _colorPowerUp;
         [SerializeField] private int _boardHeight = 10;
         [SerializeField] private int _boardWidth = 10;
 
-        private GameService _gameEngine;
+        private IGameService _gameEngine;
         private bool _isAnimating;
         private bool _powerUpActivated;
         private int _selectedX = -1;
@@ -50,8 +50,18 @@ namespace StarSaga3.Project.Script.Controllers
 
         private void Start()
         {
-            List<List<Tile>> board = _gameEngine.StartGame(_boardWidth, _boardHeight);
-            _boardView.CreateBoard(board);
+            var board = _gameEngine.StartGame(_boardWidth, _boardHeight);
+            
+            // Initialize View
+            _boardView.Initialize(_boardWidth, _boardHeight);
+            for(int y=0; y<_boardHeight; y++)
+            {
+                for(int x=0; x<_boardWidth; x++)
+                {
+                    _boardView.SetTile(x, y, board[y][x].Type);
+                }
+            }
+
             _stripLinePowerUp.Initialize(new StripedPowerUp(true));
             _explodePowerUp.Initialize(new ExplodePowerUp(2));
             _colorPowerUp.Initialize(new ColorPowerUp());
@@ -64,27 +74,39 @@ namespace StarSaga3.Project.Script.Controllers
         {
             ResetHints();
             
+            if (index >= boardSequences.Count)
+            {
+                ResetHints();
+                onComplete();
+                return;
+            }
+
             BoardSequence boardSequence = boardSequences[index];
 
-            Sequence sequence = DOTween.Sequence();
-            sequence.Append(_boardView.DestroyTiles(boardSequence.MatchedPosition));
-            sequence.Append(scoreController.AddScore(boardSequence.ScoreToAdd));
-            sequence.Append(_boardView.MoveTiles(boardSequence.MovedTiles));
-            sequence.Append(_boardView.CreateTile(boardSequence.AddedTiles));
+            float duration = 0.2f;
 
-            index += 1;
-            if (index < boardSequences.Count)
+            // Sequential Animation logic via Callbacks
+            // 1. Destroy
+            _boardView.AnimateExplosion(boardSequence.MatchedPosition, duration, () =>
             {
-                sequence.onComplete += () => AnimateBoard(boardSequences, index, onComplete);
-            }
-            else
-            {
-                sequence.onComplete += () =>
+                scoreController.AddScore(boardSequence.ScoreToAdd);
+                
+                // 2. Move
+                var moves = new List<(System.Numerics.Vector2, System.Numerics.Vector2)>();
+                foreach(var m in boardSequence.MovedTiles) moves.Add((m.From, m.To));
+                
+                _boardView.AnimateMove(moves, duration, () =>
                 {
-                    ResetHints();
-                    onComplete();
-                };
-            }
+                    // 3. Spawn
+                    var spawns = new List<(System.Numerics.Vector2, int)>();
+                    foreach(var a in boardSequence.AddedTiles) spawns.Add((a.Position, a.Type));
+
+                    _boardView.AnimateSpawn(spawns, duration, () =>
+                    {
+                        AnimateBoard(boardSequences, index + 1, onComplete);
+                    });
+                });
+            });
         }
 
         private void OnTileClick(int x, int y)
@@ -112,7 +134,8 @@ namespace StarSaga3.Project.Script.Controllers
                 else
                 {
                     _isAnimating = true;
-                    _boardView.SwapTiles(_selectedX, _selectedY, x, y).onComplete += () =>
+                    // Visual Swap 1
+                    _boardView.AnimateSwap(_selectedX, _selectedY, x, y, 0.2f, () =>
                     {
                         bool isValid = _gameEngine.IsValidMovement(_selectedX, _selectedY, x, y);
                         if (isValid)
@@ -122,11 +145,12 @@ namespace StarSaga3.Project.Script.Controllers
                         }
                         else
                         {
-                            _boardView.SwapTiles(x, y, _selectedX, _selectedY).onComplete += () => _isAnimating = false;
+                            // Revert Swap
+                            _boardView.AnimateSwap(x, y, _selectedX, _selectedY, 0.2f, () => _isAnimating = false);
                         }
                         _selectedX = -1;
                         _selectedY = -1;
-                    };
+                    });
                 }
             }
             else
@@ -157,7 +181,9 @@ namespace StarSaga3.Project.Script.Controllers
                     var hint = _gameEngine.LookForHint();
                     if (hint.Count > 0 && !_isAnimating)
                     {
-                        _boardView.HighlightHint(hint);
+                        var positions = new List<System.Numerics.Vector2>();
+                        foreach(var h in hint) positions.Add(h);
+                        _boardView.HighlightHint(positions);
                     }
                 }
             }
@@ -167,7 +193,8 @@ namespace StarSaga3.Project.Script.Controllers
         private void ResetHints()
         {
             _cancellationTokenSource?.Cancel();
-            _boardView.ClearAllHighlights(); // optional helper in BoardView
+            _cancellationTokenSource?.Cancel();
+            _boardView.SetHighlight(-1, -1, false); // Clear legacy helper
             StartHintLoop();
         }
     }
