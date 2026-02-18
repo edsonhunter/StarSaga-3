@@ -1,10 +1,10 @@
 ﻿using System;
-using Gazeus.DesafioMatch3.Core;
-using Gazeus.DesafioMatch3.Models;
+using StarSaga3.Project.Script.Core.PowerUp;
+using StarSaga3.Project.Script.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Gazeus.DesafioMatch3.Controllers
+namespace StarSaga3.Project.Script.Controllers
 {
     public class PowerUpButtonController : MonoBehaviour
     {

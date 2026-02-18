@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using DG.Tweening;
+﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Gazeus.DesafioMatch3.Controllers
+namespace StarSaga3.Project.Script.Controllers
 {
     public class ScoreController : MonoBehaviour
     {

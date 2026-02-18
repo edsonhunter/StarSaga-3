@@ -1,45 +1,57 @@
-using System;
 using System.Collections.Generic;
-using Gazeus.DesafioMatch3.Models;
+using StarSaga3.Project.Script.Models;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Gazeus.DesafioMatch3.Core
+namespace StarSaga3.Project.Script.Core
 {
     public class GameService
     {
         private List<List<Tile>> _boardTiles;
         private List<int> _tilesTypes;
         private int _tileCount;
-        private PowerUp _powerUp;
+        private PowerUp.PowerUp _powerUp;
 
         public bool IsValidMovement(int fromX, int fromY, int toX, int toY)
         {
-            List<List<Tile>> newBoard = CopyBoard(_boardTiles);
+            List<List<Tile>> board = _boardTiles;
 
-            (newBoard[toY][toX], newBoard[fromY][fromX]) = (newBoard[fromY][fromX], newBoard[toY][toX]);
+            if (fromX < 0 || fromX >= board[0].Count || fromY < 0 || fromY >= board.Count) return false;
+            if (toX < 0 || toX >= board[0].Count || toY < 0 || toY >= board.Count) return false;
 
-            for (int y = 0; y < newBoard.Count; y++)
+            // Swap
+            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+
+            bool hasMatch = false;
+
+            // Checks
+            for (int y = 0; y < board.Count; y++)
             {
-                for (int x = 0; x < newBoard[y].Count; x++)
+                for (int x = 0; x < board[y].Count; x++)
                 {
                     if (x > 1 &&
-                        newBoard[y][x].Type == newBoard[y][x - 1].Type &&
-                        newBoard[y][x - 1].Type == newBoard[y][x - 2].Type)
+                        board[y][x].Type == board[y][x - 1].Type &&
+                        board[y][x - 1].Type == board[y][x - 2].Type)
                     {
-                        return true;
+                        hasMatch = true;
+                        break;
                     }
 
                     if (y > 1 &&
-                        newBoard[y][x].Type == newBoard[y - 1][x].Type &&
-                        newBoard[y - 1][x].Type == newBoard[y - 2][x].Type)
+                        board[y][x].Type == board[y - 1][x].Type &&
+                        board[y - 1][x].Type == board[y - 2][x].Type)
                     {
-                        return true;
+                        hasMatch = true;
+                        break;
                     }
                 }
+                if (hasMatch) break;
             }
 
-            return false;
+            // Swap back
+            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+
+            return hasMatch;
         }
 
         public List<List<Tile>> StartGame(int boardWidth, int boardHeight)
@@ -52,11 +64,9 @@ namespace Gazeus.DesafioMatch3.Core
 
         public List<BoardSequence> SwapTile(int fromX, int fromY, int toX, int toY)
         {
-            List<List<Tile>> newBoard = CopyBoard(_boardTiles);
+            Swap(_boardTiles, fromX, fromY, toX, toY);
 
-            Swap(newBoard, fromX, fromY, toX, toY);
-
-            return Cascade(newBoard);
+            return Cascade(_boardTiles);
         }
         
         private void Swap(List<List<Tile>> board, int fromX, int fromY, int toX, int toY)
@@ -232,22 +242,6 @@ namespace Gazeus.DesafioMatch3.Core
             return addedTiles;
         }
 
-        private static List<List<Tile>> CopyBoard(List<List<Tile>> boardToCopy)
-        {
-            List<List<Tile>> newBoard = new(boardToCopy.Count);
-            for (int y = 0; y < boardToCopy.Count; y++)
-            {
-                newBoard.Add(new List<Tile>(boardToCopy[y].Count));
-                for (int x = 0; x < boardToCopy[y].Count; x++)
-                {
-                    Tile tile = boardToCopy[y][x];
-                    newBoard[y].Add(new Tile { Id = tile.Id, Type = tile.Type, Score = tile.Score });
-                }
-            }
-
-            return newBoard;
-        }
-
         private List<List<Tile>> CreateBoard(int width, int height, List<int> tileTypes)
         {
             List<List<Tile>> board = new(height);
@@ -369,7 +363,7 @@ namespace Gazeus.DesafioMatch3.Core
 
         #region PowerUp
         
-        public void ActivatePowerUp(PowerUp powerUp)
+        public void ActivatePowerUp(PowerUp.PowerUp powerUp)
         {
             _powerUp = powerUp;
         }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Gazeus.DesafioMatch3.Models
+namespace StarSaga3.Project.Script.Models
 {
     public class BoardSequence
     {

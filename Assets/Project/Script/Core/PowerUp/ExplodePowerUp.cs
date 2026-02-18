@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Gazeus.DesafioMatch3.Models;
+using StarSaga3.Project.Script.Models;
 using UnityEngine;
 
-namespace Gazeus.DesafioMatch3.Core
+namespace StarSaga3.Project.Script.Core.PowerUp
 {
     public class ExplodePowerUp : PowerUp
     {

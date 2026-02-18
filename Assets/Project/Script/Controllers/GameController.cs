@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DG.Tweening;
-using Gazeus.DesafioMatch3.Core;
-using Gazeus.DesafioMatch3.Models;
-using Gazeus.DesafioMatch3.Views;
+using StarSaga3.Project.Script.Core;
+using StarSaga3.Project.Script.Core.PowerUp;
+using StarSaga3.Project.Script.Models;
+using StarSaga3.Project.Script.Views;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-namespace Gazeus.DesafioMatch3.Controllers
+namespace StarSaga3.Project.Script.Controllers
 {
     public class GameController : MonoBehaviour
     {

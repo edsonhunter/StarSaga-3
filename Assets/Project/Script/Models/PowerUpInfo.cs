@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Gazeus.DesafioMatch3.Models
+namespace StarSaga3.Project.Script.Models
 {
     public class PowerUpInfo
     {

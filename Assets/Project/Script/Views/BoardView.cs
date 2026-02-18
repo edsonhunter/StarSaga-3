@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
-using Gazeus.DesafioMatch3.Models;
-using Gazeus.DesafioMatch3.ScriptableObjects;
+using StarSaga3.Project.Script.Models;
+using StarSaga3.Project.Script.ScriptableObjects;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Gazeus.DesafioMatch3.Views
+namespace StarSaga3.Project.Script.Views
 {
     public class BoardView : MonoBehaviour
     {
@@ -167,7 +167,5 @@ namespace Gazeus.DesafioMatch3.Views
             TileClicked?.Invoke(x, y);
         }
         #endregion
-
-        
     }
 }
