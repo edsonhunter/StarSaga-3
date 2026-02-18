@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
 using StarSaga3.Project.Script.Models;
 
 namespace StarSaga3.Project.Script.Core.PowerUp
 {
     public class ColorPowerUp : PowerUp
     {
-        public override List<Vector2> Activate(PowerUpInfo powerUpInfo)
+        public override List<Vector2Int> Activate(PowerUpInfo powerUpInfo)
         {
             var board = powerUpInfo.Board;
             var x = powerUpInfo.FromX;
             var y = powerUpInfo.FromY;
-            List<Vector2> affectedTiles = new();
+            List<Vector2Int> affectedTiles = new();
 
             if (board == null || board.Count == 0)
                 return affectedTiles;
@@ -27,7 +26,7 @@ namespace StarSaga3.Project.Script.Core.PowerUp
                 {
                     if (board[row][col].Type == targetType)
                     {
-                        affectedTiles.Add(new Vector2(col, row));
+                        affectedTiles.Add(new Vector2Int(col, row));
                     }
                 }
             }

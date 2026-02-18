@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using DG.Tweening;
 using StarSaga3.Project.Script.Core;
 using UnityEngine;
+using StarSaga3.Project.Script.Models;
+using Vector2Int = StarSaga3.Project.Script.Models.Vector2Int;
 
 namespace StarSaga3.Project.Script.Views
 {
+    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class BoardRenderer : MonoBehaviour, IBoardView
     {
         public event Constants.TileClickDelegate TileClicked;
@@ -23,6 +26,7 @@ namespace StarSaga3.Project.Script.Views
         // Mesh Data Arrays
         private Vector3[] _vertices;
         private Color[] _colors;
+        private Vector2[] _uvs;
         private int[] _triangles;
         private Mesh _mesh;
         private bool _isDirty;
@@ -30,6 +34,7 @@ namespace StarSaga3.Project.Script.Views
         private void Awake()
         {
             _mesh = new Mesh();
+            _mesh.name = "BoardMesh";
             _mesh.MarkDynamic();
             _meshFilter.mesh = _mesh;
         }
@@ -52,8 +57,12 @@ namespace StarSaga3.Project.Script.Views
             _grid = new VisualTile[width, height];
             
             // Camera setup to center board
-            Camera.main.transform.position = new Vector3((width - 1) / 2f, (height - 1) / 2f, -10f);
-            Camera.main.orthographicSize = Math.Max(width, height) / 2f + 1f;
+            if (Camera.main != null)
+            {
+                Camera.main.transform.position = new Vector3((width - 1) / 2f, (height - 1) / 2f, -10f);
+                Camera.main.orthographic = true;
+                Camera.main.orthographicSize = Math.Max(width, height) / 2f + 1f;
+            }
         }
 
         public void SetTile(int x, int y, int type)
@@ -65,7 +74,7 @@ namespace StarSaga3.Project.Script.Views
             }
 
             Color color = (type >= 0 && type < _tileColors.Length) ? _tileColors[type] : Color.white;
-            var tile = new VisualTile(new Vector2(x, y), type, color);
+            var tile = new VisualTile(new UnityEngine.Vector2(x, y), type, color);
             
             _grid[x, y] = tile;
             if (!_visualTiles.Contains(tile)) _visualTiles.Add(tile);
@@ -75,6 +84,7 @@ namespace StarSaga3.Project.Script.Views
 
         public void ClearTile(int x, int y)
         {
+            if (x < 0 || x >= _width || y < 0 || y >= _height) return;
             var tile = _grid[x, y];
             if (tile != null)
             {
@@ -89,7 +99,6 @@ namespace StarSaga3.Project.Script.Views
             var t1 = _grid[x1, y1];
             var t2 = _grid[x2, y2];
 
-            // Swap in grid logic immediately (Visual state swap)
             _grid[x1, y1] = t2;
             _grid[x2, y2] = t1;
 
@@ -97,67 +106,48 @@ namespace StarSaga3.Project.Script.Views
 
             if (t1 != null)
             {
-                seq.Join(DOTween.To(() => t1.Position, v => { t1.Position = v; _isDirty = true; }, new Vector2(x2, y2), duration));
+                seq.Join(DOTween.To(() => t1.Position, v => { t1.Position = v; _isDirty = true; }, new UnityEngine.Vector2(x2, y2), duration));
             }
             if (t2 != null)
             {
-                seq.Join(DOTween.To(() => t2.Position, v => { t2.Position = v; _isDirty = true; }, new Vector2(x1, y1), duration));
+                seq.Join(DOTween.To(() => t2.Position, v => { t2.Position = v; _isDirty = true; }, new UnityEngine.Vector2(x1, y1), duration));
             }
 
             seq.OnComplete(() => onComplete?.Invoke());
         }
 
-        public void AnimateMove(List<(System.Numerics.Vector2 from, System.Numerics.Vector2 to)> moves, float duration, Action onComplete)
+        public void AnimateMove(List<(Vector2Int from, Vector2Int to)> moves, float duration, Action onComplete)
         {
             Sequence seq = DOTween.Sequence();
             
-            // Create a temporary backup of the grid layout for the animation logic if needed,
-            // but for simplicity we rely on the fact that GameService already moved logic tiles.
-            // We just need to animate visual tiles from A to B.
-
-            // Problem: GameService logic already updated the board state.
-            // We need to find the VisualTile that WAS at 'from' and move it to 'to'.
-            // But we might have overlapping moves.
-            
-            // Standard approach:
-            // 1. Identify all tiles moving.
-            // 2. Clear their grid spots.
-            // 3. Animate them.
-            // 4. Place them in their new grid spots.
-
             foreach (var move in moves)
             {
-                int fx = (int)move.from.X;
-                int fy = (int)move.from.Y;
-                int tx = (int)move.to.X;
-                int ty = (int)move.to.Y;
+                int fx = move.from.x;
+                int fy = move.from.y;
+                int tx = move.to.x;
+                int ty = move.to.y;
 
-                // Find the tile currently at 'from'
-                // Note: Since logic happens before animation, we assume the visual representation hasn't been updated yet via SetTile calls
-                // Actually, SetTile is likely not called for moves, only spawns.
-                // We track our own state in _grid.
-                
                 var tile = _grid[fx, fy];
                 if (tile != null)
                 {
-                    _grid[fx, fy] = null; // Remove from old spot
-                    _grid[tx, ty] = tile; // Place in new spot (logically)
+                    _grid[fx, fy] = null; 
+                    _grid[tx, ty] = tile; 
                     
-                    seq.Join(DOTween.To(() => tile.Position, v => { tile.Position = v; _isDirty = true; }, new Vector2(tx, ty), duration));
+                    seq.Join(DOTween.To(() => tile.Position, v => { tile.Position = v; _isDirty = true; }, new UnityEngine.Vector2(tx, ty), duration));
                 }
             }
 
             seq.OnComplete(() => onComplete?.Invoke());
         }
 
-        public void AnimateExplosion(List<System.Numerics.Vector2> positions, float duration, Action onComplete)
+        public void AnimateExplosion(List<Vector2Int> positions, float duration, Action onComplete)
         {
             Sequence seq = DOTween.Sequence();
 
             foreach (var pos in positions)
             {
-                int x = (int)pos.X;
-                int y = (int)pos.Y;
+                int x = pos.x;
+                int y = pos.y;
                 var tile = _grid[x, y];
                 if (tile != null)
                 {
@@ -167,22 +157,22 @@ namespace StarSaga3.Project.Script.Views
 
             seq.OnComplete(() =>
             {
-                foreach (var pos in positions) ClearTile((int)pos.X, (int)pos.Y);
+                foreach (var pos in positions) ClearTile(pos.x, pos.y);
                 onComplete?.Invoke();
             });
         }
 
-        public void AnimateSpawn(List<(System.Numerics.Vector2 pos, int type)> spawns, float duration, Action onComplete)
+        public void AnimateSpawn(List<(Vector2Int pos, int type)> spawns, float duration, Action onComplete)
         {
             Sequence seq = DOTween.Sequence();
 
             foreach (var spawn in spawns)
             {
-                int x = (int)spawn.pos.X;
-                int y = (int)spawn.pos.Y;
+                int x = spawn.pos.x;
+                int y = spawn.pos.y;
                 
                 Color color = (spawn.type >= 0 && spawn.type < _tileColors.Length) ? _tileColors[spawn.type] : Color.white;
-                var tile = new VisualTile(new Vector2(x, y), spawn.type, color);
+                var tile = new VisualTile(new UnityEngine.Vector2(x, y), spawn.type, color);
                 tile.Scale = 0f;
 
                 _grid[x, y] = tile;
@@ -207,19 +197,18 @@ namespace StarSaga3.Project.Script.Views
             }
         }
 
-        public void HighlightHint(List<System.Numerics.Vector2> positions)
+        public void HighlightHint(List<Vector2Int> positions)
         {
             foreach (var p in positions)
             {
-                SetHighlight((int)p.X, (int)p.Y, true);
+                SetHighlight(p.x, p.y, true);
             }
 
-            // Auto turn off after 2 seconds
             DOVirtual.DelayedCall(2f, () =>
             {
                 foreach (var p in positions)
                 {
-                    SetHighlight((int)p.X, (int)p.Y, false);
+                    SetHighlight(p.x, p.y, false);
                 }
             });
         }
@@ -254,10 +243,17 @@ namespace StarSaga3.Project.Script.Views
         private void UpdateMesh()
         {
             int tileCount = _visualTiles.Count;
+            if (tileCount == 0)
+            {
+                _mesh.Clear();
+                return;
+            }
+
             if (_vertices == null || _vertices.Length != tileCount * 4)
             {
                 _vertices = new Vector3[tileCount * 4];
                 _colors = new Color[tileCount * 4];
+                _uvs = new UnityEngine.Vector2[tileCount * 4];
                 _triangles = new int[tileCount * 6];
             }
 
@@ -267,22 +263,30 @@ namespace StarSaga3.Project.Script.Views
                 int vIndex = i * 4;
                 int tIndex = i * 6;
 
-                Vector2 center = tile.Position;
+                UnityEngine.Vector2 center = tile.Position;
                 float halfSize = 0.5f * tile.Scale - _padding;
 
-                // Adjust color for highlight
                 Color c = tile.IsHighlighted ? Color.Lerp(tile.Color, Color.white, 0.5f) : tile.Color;
 
+                // Vertices
                 _vertices[vIndex + 0] = new Vector3(center.x - halfSize, center.y - halfSize, 0);
                 _vertices[vIndex + 1] = new Vector3(center.x - halfSize, center.y + halfSize, 0);
                 _vertices[vIndex + 2] = new Vector3(center.x + halfSize, center.y + halfSize, 0);
                 _vertices[vIndex + 3] = new Vector3(center.x + halfSize, center.y - halfSize, 0);
 
+                // Colors
                 _colors[vIndex + 0] = c;
                 _colors[vIndex + 1] = c;
                 _colors[vIndex + 2] = c;
                 _colors[vIndex + 3] = c;
 
+                // UVs (Full texture map for each square)
+                _uvs[vIndex + 0] = new UnityEngine.Vector2(0, 0);
+                _uvs[vIndex + 1] = new UnityEngine.Vector2(0, 1);
+                _uvs[vIndex + 2] = new UnityEngine.Vector2(1, 1);
+                _uvs[vIndex + 3] = new UnityEngine.Vector2(1, 0);
+
+                // Triangles (Winding: 0-1-2, 0-2-3)
                 _triangles[tIndex + 0] = vIndex + 0;
                 _triangles[tIndex + 1] = vIndex + 1;
                 _triangles[tIndex + 2] = vIndex + 2;
@@ -294,7 +298,10 @@ namespace StarSaga3.Project.Script.Views
             _mesh.Clear();
             _mesh.vertices = _vertices;
             _mesh.colors = _colors;
+            _mesh.uv = _uvs;
             _mesh.triangles = _triangles;
+            _mesh.RecalculateBounds();
+            _mesh.RecalculateNormals();
         }
     }
 }

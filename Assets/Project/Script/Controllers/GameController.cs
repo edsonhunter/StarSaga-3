@@ -8,7 +8,7 @@ using StarSaga3.Project.Script.Core.PowerUp;
 using StarSaga3.Project.Script.Models;
 using StarSaga3.Project.Script.Views;
 using UnityEngine;
-using Vector2 = System.Numerics.Vector2;
+using Vector2Int = StarSaga3.Project.Script.Models.Vector2Int;
 
 namespace StarSaga3.Project.Script.Controllers
 {
@@ -93,13 +93,13 @@ namespace StarSaga3.Project.Script.Controllers
                 scoreController.AddScore(boardSequence.ScoreToAdd);
                 
                 // 2. Move
-                var moves = new List<(Vector2, Vector2)>();
+                var moves = new List<(Vector2Int from, Vector2Int to)>();
                 foreach(var m in boardSequence.MovedTiles) moves.Add((m.From, m.To));
                 
                 _boardView.AnimateMove(moves, duration, () =>
                 {
                     // 3. Spawn
-                    var spawns = new List<(Vector2, int)>();
+                    var spawns = new List<(Vector2Int pos, int type)>();
                     foreach(var a in boardSequence.AddedTiles) spawns.Add((a.Position, a.Type));
 
                     _boardView.AnimateSpawn(spawns, duration, () =>
@@ -182,9 +182,7 @@ namespace StarSaga3.Project.Script.Controllers
                     var hint = _gameEngine.LookForHint();
                     if (hint.Count > 0 && !_isAnimating)
                     {
-                        var positions = new List<Vector2>();
-                        foreach(var h in hint) positions.Add(h);
-                        _boardView.HighlightHint(positions);
+                        _boardView.HighlightHint(hint);
                     }
                 }
             }
