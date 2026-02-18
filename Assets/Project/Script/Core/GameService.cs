@@ -1,26 +1,26 @@
+using System;
 using System.Collections.Generic;
+using System.Numerics;
 using StarSaga3.Project.Script.Models;
-using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace StarSaga3.Project.Script.Core
 {
-    public class GameService
+    public class GameService : IGameService
     {
         private List<List<Tile>> _boardTiles;
         private List<int> _tilesTypes;
         private int _tileCount;
         private PowerUp.PowerUp _powerUp;
 
-        public bool IsValidMovement(int fromX, int fromY, int toX, int toY)
+        public bool IsValidMovement(int x1, int y1, int x2, int y2)
         {
             List<List<Tile>> board = _boardTiles;
 
-            if (fromX < 0 || fromX >= board[0].Count || fromY < 0 || fromY >= board.Count) return false;
-            if (toX < 0 || toX >= board[0].Count || toY < 0 || toY >= board.Count) return false;
+            if (x1 < 0 || x1 >= board[0].Count || y1 < 0 || y1 >= board.Count) return false;
+            if (x2 < 0 || x2 >= board[0].Count || y2 < 0 || y2 >= board.Count) return false;
 
             // Swap
-            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+            (board[y2][x2], board[y1][x1]) = (board[y1][x1], board[y2][x2]);
 
             bool hasMatch = false;
 
@@ -49,12 +49,12 @@ namespace StarSaga3.Project.Script.Core
             }
 
             // Swap back
-            (board[toY][toX], board[fromY][fromX]) = (board[fromY][fromX], board[toY][toX]);
+            (board[y2][x2], board[y1][x1]) = (board[y1][x1], board[y2][x2]);
 
             return hasMatch;
         }
 
-        public List<List<Tile>> StartGame(int boardWidth, int boardHeight)
+        public IReadOnlyList<IReadOnlyList<Tile>> StartGame(int boardWidth, int boardHeight)
         {
             _tilesTypes = new List<int> { 0, 1, 2, 3 };
             _boardTiles = CreateBoard(boardWidth, boardHeight, _tilesTypes);
@@ -62,10 +62,9 @@ namespace StarSaga3.Project.Script.Core
             return _boardTiles;
         }
 
-        public List<BoardSequence> SwapTile(int fromX, int fromY, int toX, int toY)
+        public List<BoardSequence> SwapTile(int x1, int y1, int x2, int y2)
         {
-            Swap(_boardTiles, fromX, fromY, toX, toY);
-
+            Swap(_boardTiles, x1, y1, x2, y2);
             return Cascade(_boardTiles);
         }
         
@@ -85,7 +84,7 @@ namespace StarSaga3.Project.Script.Core
                 if (!HasMatch(matches))
                     break;
                 
-                List<Vector2Int> matchedPositions = AddMatchedPositions(board, matches, out int scoreToAdd);
+                List<Vector2> matchedPositions = AddMatchedPositions(board, matches, out int scoreToAdd);
                 List<MovedTileInfo> movedTiles = MoveTiles(board, matchedPositions);
                 List<AddedTileInfo> addedTiles = AddNewTiles(board);
 
@@ -105,9 +104,9 @@ namespace StarSaga3.Project.Script.Core
             return boardSequences;
         }
         
-        private List<Vector2Int> AddMatchedPositions(List<List<Tile>> board, List<List<bool>> matchedTiles, out int totalScore)
+        private List<Vector2> AddMatchedPositions(List<List<Tile>> board, List<List<bool>> matchedTiles, out int totalScore)
         {
-            List<Vector2Int> matchedPositions = new();
+            List<Vector2> matchedPositions = new();
             totalScore = 0;
 
             for (int y = 0; y < board.Count; y++)
@@ -116,7 +115,7 @@ namespace StarSaga3.Project.Script.Core
                 {
                     if (matchedTiles[y][x])
                     {
-                        matchedPositions.Add(new Vector2Int(x, y));
+                        matchedPositions.Add(new Vector2(x, y));
                         totalScore += board[y][x].Score;
                         board[y][x] = new Tile { Id = -1, Type = -1, Score = -1 };
                     }
@@ -126,33 +125,36 @@ namespace StarSaga3.Project.Script.Core
             return matchedPositions;
         }
         
-        private List<Vector2Int> AddMatchesFromPositions(List<List<Tile>> board, List<Vector2Int> positions, out int scoreGained)
+        private List<Vector2> AddMatchesFromPositions(List<List<Tile>> board, List<Vector2> positions, out int scoreGained)
         {
             var unique = new HashSet<(int x, int y)>();
-            var result = new List<Vector2Int>();
+            var result = new List<Vector2>();
             scoreGained = 0;
 
             foreach (var p in positions)
             {
-                // validate bounds
-                if (p.y < 0 || p.y >= board.Count) continue;
-                if (p.x < 0 || p.x >= board[p.y].Count) continue;
+                int px = (int)p.X;
+                int py = (int)p.Y;
 
-                if (!unique.Add((p.x, p.y))) continue; // skip duplicates
+                // validate bounds
+                if (py < 0 || py >= board.Count) continue;
+                if (px < 0 || px >= board[py].Count) continue;
+
+                if (!unique.Add((px, py))) continue; // skip duplicates
 
                 // Only count/clear existing tiles
-                if (board[p.y][p.x].Type != -1)
+                if (board[py][px].Type != -1)
                 {
-                    result.Add(new Vector2Int(p.x, p.y));
-                    scoreGained += board[p.y][p.x].Score;
-                    board[p.y][p.x] = new Tile { Id = -1, Type = -1, Score = 0 };
+                    result.Add(new Vector2(px, py));
+                    scoreGained += board[py][px].Score;
+                    board[py][px] = new Tile { Id = -1, Type = -1, Score = 0 };
                 }
             }
 
             return result;
         }
         
-        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2Int> matchedPositions)
+        private List<MovedTileInfo> MoveTiles(List<List<Tile>> board, List<Vector2> matchedPositions)
         {
             var moved = new List<MovedTileInfo>();
             int height = board.Count;
@@ -162,12 +164,14 @@ namespace StarSaga3.Project.Script.Core
             var matchedByColumn = new Dictionary<int, HashSet<int>>();
             foreach (var p in matchedPositions)
             {
-                if (!matchedByColumn.TryGetValue(p.x, out var rows))
+                int px = (int)p.X;
+                int py = (int)p.Y;
+                if (!matchedByColumn.TryGetValue(px, out var rows))
                 {
                     rows = new HashSet<int>();
-                    matchedByColumn[p.x] = rows;
+                    matchedByColumn[px] = rows;
                 }
-                rows.Add(p.y);
+                rows.Add(py);
             }
 
             // Only process columns that actually had matched tiles
@@ -195,8 +199,8 @@ namespace StarSaga3.Project.Script.Core
 
                         moved.Add(new MovedTileInfo
                         {
-                            From = new Vector2Int(x, y),
-                            To   = new Vector2Int(x, writeY)
+                            From = new Vector2(x, y),
+                            To   = new Vector2(x, writeY)
                         });
                     }
 
@@ -223,7 +227,8 @@ namespace StarSaga3.Project.Script.Core
                 {
                     if (board[y][x].Type == -1)
                     {
-                        int tileType = Random.Range(0, _tilesTypes.Count);
+                        var random = new Random();
+                        int tileType = random.Next(0, _tilesTypes.Count);
 
                         Tile tile = board[y][x];
                         tile.Id = _tileCount++;
@@ -232,7 +237,7 @@ namespace StarSaga3.Project.Script.Core
 
                         addedTiles.Add(new AddedTileInfo
                         {
-                            Position = new Vector2Int(x, y),
+                            Position = new Vector2(x, y),
                             Type = tile.Type
                         });
                     }
@@ -246,6 +251,8 @@ namespace StarSaga3.Project.Script.Core
         {
             List<List<Tile>> board = new(height);
             _tileCount = 0;
+            var random = new Random();
+
             for (int y = 0; y < height; y++)
             {
                 board.Add(new List<Tile>(width));
@@ -278,7 +285,7 @@ namespace StarSaga3.Project.Script.Core
                     }
 
                     board[y][x].Id = _tileCount++;
-                    board[y][x].Type = noMatchTypes[Random.Range(0, noMatchTypes.Count)];
+                    board[y][x].Type = noMatchTypes[random.Next(0, noMatchTypes.Count)];
                     board[y][x].Score = board[y][x].Type * 10;
                 }
             }
@@ -341,7 +348,7 @@ namespace StarSaga3.Project.Script.Core
             return false;
         }
         
-        public List<Vector2Int> LookForHint()
+        public List<Vector2> LookForHint()
         {
             int height = _boardTiles.Count;
             int width = _boardTiles[0].Count;
@@ -351,14 +358,14 @@ namespace StarSaga3.Project.Script.Core
                 for (int x = 0; x < width; x++)
                 {
                     if (x < width - 1 && IsValidMovement(x, y, x + 1, y))
-                        return new List<Vector2Int> { new(x, y), new(x + 1, y) };
+                        return new List<Vector2> { new(x, y), new(x + 1, y) };
 
                     if (y < height - 1 && IsValidMovement(x, y, x, y + 1))
-                        return new List<Vector2Int> { new(x, y), new(x, y + 1) };
+                        return new List<Vector2> { new(x, y), new(x, y + 1) };
                 }
             }
 
-            return new List<Vector2Int>();
+            return new List<Vector2>();
         }
 
         #region PowerUp
@@ -377,13 +384,20 @@ namespace StarSaga3.Project.Script.Core
 
             var info = new PowerUpInfo { Board = _boardTiles, FromX =  x, FromY = y };
 
-            List<Vector2Int> affected = _powerUp.Activate(info) ?? new List<Vector2Int>();
+            List<Vector2> affected = new List<Vector2>();
+            // Assuming PowerUp.Activate returns List<UnityEngine.Vector2Int>
+            var rawAffected = _powerUp.Activate(info);
+            if (rawAffected != null)
+            {
+                foreach (var v in rawAffected) affected.Add(new Vector2(v.x, v.y));
+            }
+
             _powerUp = null;
 
             if (affected.Count == 0)
                 return sequences;
             
-            List<Vector2Int> matchedPositions = AddMatchesFromPositions(_boardTiles, affected, out int scoreToAdd);
+            List<Vector2> matchedPositions = AddMatchesFromPositions(_boardTiles, affected, out int scoreToAdd);
             List<MovedTileInfo> moved = MoveTiles(_boardTiles, matchedPositions);
             List<AddedTileInfo> added = AddNewTiles(_boardTiles);
 
