@@ -81,7 +81,6 @@ Shader "StarSaga/TileHighlight"
                 // If Highlight flag (texcoord1.x > 0.5) is set, apply pulsating glow
                 if (IN.texcoord1.x > 0.5)
                 {
-                    // sin wave adjusted to 0-1 range
                     float pulse = (sin(_Time.y * _GlowSpeed) + 1.0) * 0.5;
                     c.rgb = lerp(c.rgb, _GlowColor.rgb, pulse * 0.7); // 0.7 is max glow intensity
                 }
