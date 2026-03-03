@@ -30,9 +30,9 @@ namespace StarSaga3.Project.Script.Core.Services
                 int x = kv.Key;
                 var matchedRows = kv.Value;
 
-                int writeY = height - 1; 
+                int writeY = 0; 
 
-                for (int y = height - 1; y >= 0; y--)
+                for (int y = 0; y < height; y++)
                 {
                     if (matchedRows.Contains(y)) continue;
 
@@ -51,10 +51,10 @@ namespace StarSaga3.Project.Script.Core.Services
                         });
                     }
 
-                    writeY--;
+                    writeY++;
                 }
 
-                for (int y = writeY; y >= 0; y--)
+                for (int y = writeY; y < height; y++)
                 {
                     board[y, x] = new Tile { Id = -1, Type = -1, Score = 0 };
                 }
@@ -72,7 +72,7 @@ namespace StarSaga3.Project.Script.Core.Services
 
             for (int y = height - 1; y >= 0; y--)
             {
-                for (int x = width - 1; x >= 0; x--)
+                for (int x = 0; x < width; x++)
                 {
                     if (board[y, x].Type == -1)
                     {
