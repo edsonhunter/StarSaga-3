@@ -15,6 +15,7 @@ namespace StarSaga3.Project.Script.Views
 
         [SerializeField] private MeshFilter _meshFilter;
         [SerializeField] private MeshRenderer _meshRenderer;
+        [SerializeField] private Material _boardMaterial;
         [SerializeField] private Color[] _tileColors;
         [SerializeField] private float _padding = 0.1f;
 
@@ -26,6 +27,7 @@ namespace StarSaga3.Project.Script.Views
         private List<Vector3> _vertices = new List<Vector3>();
         private List<Color> _colors = new List<Color>();
         private List<Vector2> _uvs = new List<Vector2>();
+        private List<Vector2> _uv2s = new List<Vector2>();
         private List<int> _triangles = new List<int>();
         private Mesh _mesh;
         private bool _isDirty;
@@ -36,6 +38,7 @@ namespace StarSaga3.Project.Script.Views
             _mesh.name = "BoardMesh";
             _mesh.MarkDynamic();
             _meshFilter.mesh = _mesh;
+            if (_boardMaterial != null) _meshRenderer.material = _boardMaterial;
         }
 
         private void Update()
@@ -250,6 +253,7 @@ namespace StarSaga3.Project.Script.Views
             _vertices.Clear();
             _colors.Clear();
             _uvs.Clear();
+            _uv2s.Clear();
             _triangles.Clear();
 
             for (int i = 0; i < tileCount; i++)
@@ -260,7 +264,7 @@ namespace StarSaga3.Project.Script.Views
                 UnityEngine.Vector2 center = tile.Position;
                 float halfSize = 0.5f * tile.Scale - _padding;
 
-                Color c = tile.IsHighlighted ? Color.Lerp(tile.Color, Color.white, 0.5f) : tile.Color;
+                Color c = tile.Color;
 
                 _vertices.Add(new Vector3(center.x - halfSize, center.y - halfSize, 0));
                 _vertices.Add(new Vector3(center.x - halfSize, center.y + halfSize, 0));
@@ -277,6 +281,12 @@ namespace StarSaga3.Project.Script.Views
                 _uvs.Add(new UnityEngine.Vector2(1, 1));
                 _uvs.Add(new UnityEngine.Vector2(1, 0));
 
+                float highlightVal = tile.IsHighlighted ? 1f : 0f;
+                _uv2s.Add(new UnityEngine.Vector2(highlightVal, highlightVal));
+                _uv2s.Add(new UnityEngine.Vector2(highlightVal, highlightVal));
+                _uv2s.Add(new UnityEngine.Vector2(highlightVal, highlightVal));
+                _uv2s.Add(new UnityEngine.Vector2(highlightVal, highlightVal));
+
                 _triangles.Add(vIndex + 0);
                 _triangles.Add(vIndex + 1);
                 _triangles.Add(vIndex + 2);
@@ -289,6 +299,7 @@ namespace StarSaga3.Project.Script.Views
             _mesh.SetVertices(_vertices);
             _mesh.SetColors(_colors);
             _mesh.SetUVs(0, _uvs);
+            _mesh.SetUVs(1, _uv2s);
             _mesh.SetTriangles(_triangles, 0);
             
             _mesh.RecalculateBounds();

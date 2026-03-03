@@ -777,6 +777,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: StarSaga3::StarSaga3.Project.Script.Views.BoardRenderer
   _meshFilter: {fileID: 1021681734}
   _meshRenderer: {fileID: 1021681733}
+  _boardMaterial: {fileID: 2100000, guid: 483c74b88eaac994b94a7d83e9eed61c, type: 2}
   _tileColors:
   - {r: 0, g: 1, b: 0.288177, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
