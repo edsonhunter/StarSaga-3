@@ -3,13 +3,6 @@ using StarSaga3.Project.Script.Models;
 
 namespace StarSaga3.Project.Script.Core.Services
 {
-    public interface IMatchDetector
-    {
-        bool IsValidMovement(Tile[,] board, int x1, int y1, int x2, int y2);
-        List<List<bool>> FindMatches(Tile[,] board, List<List<bool>> matchBuffer);
-        bool HasMatch(List<List<bool>> list);
-    }
-
     public class MatchDetector : IMatchDetector
     {
         public bool IsValidMovement(Tile[,] board, int x1, int y1, int x2, int y2)
@@ -20,12 +13,10 @@ namespace StarSaga3.Project.Script.Core.Services
             if (x1 < 0 || x1 >= width || y1 < 0 || y1 >= height) return false;
             if (x2 < 0 || x2 >= width || y2 < 0 || y2 >= height) return false;
 
-            // Swap
             (board[y2, x2], board[y1, x1]) = (board[y1, x1], board[y2, x2]);
 
             bool hasMatch = false;
 
-            // Checks
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -51,7 +42,6 @@ namespace StarSaga3.Project.Script.Core.Services
                 if (hasMatch) break;
             }
 
-            // Swap back
             (board[y2, x2], board[y1, x1]) = (board[y1, x1], board[y2, x2]);
 
             return hasMatch;

@@ -4,12 +4,6 @@ using StarSaga3.Project.Script.Models;
 
 namespace StarSaga3.Project.Script.Core.Services
 {
-    public interface IGravityHandler
-    {
-        List<MovedTileInfo> MoveTiles(Tile[,] board, List<Vector2Int> matchedPositions);
-        List<AddedTileInfo> FillEmptyTiles(Tile[,] board, IReadOnlyList<int> tileTypes, ref int tileCount);
-    }
-
     public class GravityHandler : IGravityHandler
     {
         public List<MovedTileInfo> MoveTiles(Tile[,] board, List<Vector2Int> matchedPositions)
@@ -18,7 +12,6 @@ namespace StarSaga3.Project.Script.Core.Services
             int height = board.GetLength(0);
             int width  = board.GetLength(1);
 
-            // Build a fast lookup of matched rows by column
             var matchedByColumn = new Dictionary<int, HashSet<int>>();
             foreach (var p in matchedPositions)
             {
@@ -32,26 +25,22 @@ namespace StarSaga3.Project.Script.Core.Services
                 rows.Add(py);
             }
 
-            // Only process columns that actually had matched tiles
             foreach (var kv in matchedByColumn)
             {
                 int x = kv.Key;
                 var matchedRows = kv.Value;
 
-                int writeY = height - 1; // lowest slot we can write into
+                int writeY = height - 1; 
 
-                // Compact this column: skip matched (empties), pack non-empty tiles down
                 for (int y = height - 1; y >= 0; y--)
                 {
-                    // Treat matched cells as empty; never try to move from them
                     if (matchedRows.Contains(y)) continue;
 
                     var tile = board[y, x];
-                    if (tile.Type == -1) continue; // already empty, nothing to move
+                    if (tile.Type == -1) continue; 
 
                     if (y != writeY)
                     {
-                        // Move tile down to writeY
                         board[writeY, x] = tile;
                         board[y, x] = new Tile { Id = -1, Type = -1, Score = 0 };
 
@@ -65,7 +54,6 @@ namespace StarSaga3.Project.Script.Core.Services
                     writeY--;
                 }
 
-                // Everything above the last written tile becomes empty
                 for (int y = writeY; y >= 0; y--)
                 {
                     board[y, x] = new Tile { Id = -1, Type = -1, Score = 0 };
@@ -94,7 +82,7 @@ namespace StarSaga3.Project.Script.Core.Services
                         tile.Id = tileCount++;
                         tile.Type = tileTypes[randomTypeIndex];
                         tile.Score = tile.Type * 10;
-                        board[y, x] = tile; // struct reassignment
+                        board[y, x] = tile;
 
                         addedTiles.Add(new AddedTileInfo
                         {

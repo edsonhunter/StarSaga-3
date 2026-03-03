@@ -23,7 +23,6 @@ namespace StarSaga3.Project.Script.Views
         private int _width;
         private int _height;
         
-        // Mesh Data Lists
         private List<Vector3> _vertices = new List<Vector3>();
         private List<Color> _colors = new List<Color>();
         private List<Vector2> _uvs = new List<Vector2>();
@@ -56,7 +55,6 @@ namespace StarSaga3.Project.Script.Views
             _height = height;
             _grid = new VisualTile[width, height];
             
-            // Camera setup to center board
             if (Camera.main != null)
             {
                 Camera.main.transform.position = new Vector3((width - 1) / 2f, (height - 1) / 2f, -10f);
@@ -264,25 +262,21 @@ namespace StarSaga3.Project.Script.Views
 
                 Color c = tile.IsHighlighted ? Color.Lerp(tile.Color, Color.white, 0.5f) : tile.Color;
 
-                // Vertices
                 _vertices.Add(new Vector3(center.x - halfSize, center.y - halfSize, 0));
                 _vertices.Add(new Vector3(center.x - halfSize, center.y + halfSize, 0));
                 _vertices.Add(new Vector3(center.x + halfSize, center.y + halfSize, 0));
                 _vertices.Add(new Vector3(center.x + halfSize, center.y - halfSize, 0));
 
-                // Colors
                 _colors.Add(c);
                 _colors.Add(c);
                 _colors.Add(c);
                 _colors.Add(c);
 
-                // UVs
                 _uvs.Add(new UnityEngine.Vector2(0, 0));
                 _uvs.Add(new UnityEngine.Vector2(0, 1));
                 _uvs.Add(new UnityEngine.Vector2(1, 1));
                 _uvs.Add(new UnityEngine.Vector2(1, 0));
 
-                // Triangles (Winding: 0-1-2, 0-2-3)
                 _triangles.Add(vIndex + 0);
                 _triangles.Add(vIndex + 1);
                 _triangles.Add(vIndex + 2);
