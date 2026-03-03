@@ -6,6 +6,7 @@ Shader "StarSaga/TileHighlight"
         _Color ("Tint", Color) = (1,1,1,1)
         _GlowColor ("Glow Color", Color) = (1, 1, 1, 1)
         _GlowSpeed ("Glow Speed", Float) = 5.0
+        _BorderSize ("Border Size", Range(0, 0.5)) = 0.1
     }
 
     SubShader
@@ -38,9 +39,9 @@ Shader "StarSaga/TileHighlight"
             struct appdata_t
             {
                 float4 vertex   : POSITION;
-                float4 color    : COLOR; // Base tile color
-                float2 texcoord : TEXCOORD0; // UV for texture
-                float2 texcoord1: TEXCOORD1; // UV1 for Highlight Data
+                float4 color    : COLOR; 
+                float2 texcoord : TEXCOORD0; 
+                float2 texcoord1: TEXCOORD1; 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -57,6 +58,7 @@ Shader "StarSaga/TileHighlight"
             fixed4 _Color;
             fixed4 _GlowColor;
             float _GlowSpeed;
+            float _BorderSize;
 
             v2f vert(appdata_t IN)
             {
@@ -78,11 +80,22 @@ Shader "StarSaga/TileHighlight"
             {
                 fixed4 c = tex2D(_MainTex, IN.texcoord) * IN.color;
 
-                // If Highlight flag (texcoord1.x > 0.5) is set, apply pulsating glow
                 if (IN.texcoord1.x > 0.5)
                 {
-                    float pulse = (sin(_Time.y * _GlowSpeed) + 1.0) * 0.5;
-                    c.rgb = lerp(c.rgb, _GlowColor.rgb, pulse * 0.7); // 0.7 is max glow intensity
+                    // Calculate if we are in the border area
+                    float2 borderDist = min(IN.texcoord, 1.0 - IN.texcoord);
+                    float edgeDist = min(borderDist.x, borderDist.y);
+                    
+                    // Simple border detection using step
+                    float isBorder = step(edgeDist, _BorderSize);
+                    
+                    if (isBorder > 0.5)
+                    {
+                        float pulse = (sin(_Time.y * _GlowSpeed) + 1.0) * 0.5;
+                        // For the border, we blend strongly towards white/GlowColor
+                        c.rgb = lerp(c.rgb, _GlowColor.rgb, pulse);
+                        c.a = max(c.a, pulse * 0.8); // Ensure the border is visible even if texture is transparent
+                    }
                 }
                 
                 c.rgb *= c.a;
