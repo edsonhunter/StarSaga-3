@@ -12,19 +12,22 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             var y = powerUpInfo.FromY;
             List<Vector2Int> affectedTiles = new();
 
-            if (board == null || board.Count == 0)
+            if (board == null || board.Length == 0)
                 return affectedTiles;
 
-            int targetType = board[y][x].Type;
+            int targetType = board[y, x].Type;
 
             if (targetType == -1)
                 return affectedTiles;
 
-            for (int row = 0; row < board.Count; row++)
+            int height = board.GetLength(0);
+            int width = board.GetLength(1);
+
+            for (int row = 0; row < height; row++)
             {
-                for (int col = 0; col < board[row].Count; col++)
+                for (int col = 0; col < width; col++)
                 {
-                    if (board[row][col].Type == targetType)
+                    if (board[row, col].Type == targetType)
                     {
                         affectedTiles.Add(new Vector2Int(col, row));
                     }

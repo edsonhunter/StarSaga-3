@@ -59,7 +59,7 @@ namespace StarSaga3.Project.Script.Controllers
             {
                 for(int x=0; x<_boardWidth; x++)
                 {
-                    _boardView.SetTile(x, y, board[y][x].Type);
+                    _boardView.SetTile(x, y, board[y, x].Type);
                 }
             }
 

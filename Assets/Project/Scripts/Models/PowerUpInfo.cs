@@ -4,7 +4,7 @@ namespace StarSaga3.Project.Script.Models
 {
     public class PowerUpInfo
     {
-        public List<List<Tile>> Board;
+        public Tile[,] Board;
         public int FromX;
         public int FromY;
     }

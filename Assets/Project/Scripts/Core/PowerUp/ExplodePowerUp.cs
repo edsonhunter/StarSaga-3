@@ -19,8 +19,8 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             var y = powerUpInfo.FromY;
             
             List<Vector2Int> affectedTiles = new();
-            int height = board.Count;
-            int width = board[0].Count;
+            int height = board.GetLength(0);
+            int width = board.GetLength(1);
 
             for (int row = y - _radius; row <= y + _radius; row++)
             {

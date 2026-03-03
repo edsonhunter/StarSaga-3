@@ -21,7 +21,7 @@ namespace StarSaga3.Project.Script.Core
 
     public interface IGameService
     {
-        IReadOnlyList<IReadOnlyList<Tile>> StartGame(int width, int height);
+        Tile[,] StartGame(int width, int height);
         bool IsValidMovement(int x1, int y1, int x2, int y2);
         List<BoardSequence> SwapTile(int x1, int y1, int x2, int y2);
         List<Vector2Int> LookForHint();

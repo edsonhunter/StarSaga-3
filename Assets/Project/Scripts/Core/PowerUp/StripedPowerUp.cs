@@ -20,10 +20,13 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             
             List<Vector2Int> affectedTiles = new();
 
+            int height = board.GetLength(0);
+            int width = board.GetLength(1);
+
             if (_isHorizontal)
             {
                 // Clear the entire row
-                for (int col = 0; col < board[y].Count; col++)
+                for (int col = 0; col < width; col++)
                 {
                     affectedTiles.Add(new Vector2Int(col, y));
                 }
@@ -31,7 +34,7 @@ namespace StarSaga3.Project.Script.Core.PowerUp
             else
             {
                 // Clear the entire column
-                for (int row = 0; row < board.Count; row++)
+                for (int row = 0; row < height; row++)
                 {
                     affectedTiles.Add(new Vector2Int(x, row));
                 }

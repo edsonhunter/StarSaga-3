@@ -23,11 +23,11 @@ namespace StarSaga3.Project.Script.Views
         private int _width;
         private int _height;
         
-        // Mesh Data Arrays
-        private Vector3[] _vertices;
-        private Color[] _colors;
-        private Vector2[] _uvs;
-        private int[] _triangles;
+        // Mesh Data Lists
+        private List<Vector3> _vertices = new List<Vector3>();
+        private List<Color> _colors = new List<Color>();
+        private List<Vector2> _uvs = new List<Vector2>();
+        private List<int> _triangles = new List<int>();
         private Mesh _mesh;
         private bool _isDirty;
 
@@ -245,23 +245,19 @@ namespace StarSaga3.Project.Script.Views
             int tileCount = _visualTiles.Count;
             if (tileCount == 0)
             {
-                _mesh.Clear();
+                _mesh.Clear(true);
                 return;
             }
 
-            if (_vertices == null || _vertices.Length != tileCount * 4)
-            {
-                _vertices = new Vector3[tileCount * 4];
-                _colors = new Color[tileCount * 4];
-                _uvs = new UnityEngine.Vector2[tileCount * 4];
-                _triangles = new int[tileCount * 6];
-            }
+            _vertices.Clear();
+            _colors.Clear();
+            _uvs.Clear();
+            _triangles.Clear();
 
             for (int i = 0; i < tileCount; i++)
             {
                 var tile = _visualTiles[i];
                 int vIndex = i * 4;
-                int tIndex = i * 6;
 
                 UnityEngine.Vector2 center = tile.Position;
                 float halfSize = 0.5f * tile.Scale - _padding;
@@ -269,37 +265,38 @@ namespace StarSaga3.Project.Script.Views
                 Color c = tile.IsHighlighted ? Color.Lerp(tile.Color, Color.white, 0.5f) : tile.Color;
 
                 // Vertices
-                _vertices[vIndex + 0] = new Vector3(center.x - halfSize, center.y - halfSize, 0);
-                _vertices[vIndex + 1] = new Vector3(center.x - halfSize, center.y + halfSize, 0);
-                _vertices[vIndex + 2] = new Vector3(center.x + halfSize, center.y + halfSize, 0);
-                _vertices[vIndex + 3] = new Vector3(center.x + halfSize, center.y - halfSize, 0);
+                _vertices.Add(new Vector3(center.x - halfSize, center.y - halfSize, 0));
+                _vertices.Add(new Vector3(center.x - halfSize, center.y + halfSize, 0));
+                _vertices.Add(new Vector3(center.x + halfSize, center.y + halfSize, 0));
+                _vertices.Add(new Vector3(center.x + halfSize, center.y - halfSize, 0));
 
                 // Colors
-                _colors[vIndex + 0] = c;
-                _colors[vIndex + 1] = c;
-                _colors[vIndex + 2] = c;
-                _colors[vIndex + 3] = c;
+                _colors.Add(c);
+                _colors.Add(c);
+                _colors.Add(c);
+                _colors.Add(c);
 
-                // UVs (Full texture map for each square)
-                _uvs[vIndex + 0] = new UnityEngine.Vector2(0, 0);
-                _uvs[vIndex + 1] = new UnityEngine.Vector2(0, 1);
-                _uvs[vIndex + 2] = new UnityEngine.Vector2(1, 1);
-                _uvs[vIndex + 3] = new UnityEngine.Vector2(1, 0);
+                // UVs
+                _uvs.Add(new UnityEngine.Vector2(0, 0));
+                _uvs.Add(new UnityEngine.Vector2(0, 1));
+                _uvs.Add(new UnityEngine.Vector2(1, 1));
+                _uvs.Add(new UnityEngine.Vector2(1, 0));
 
                 // Triangles (Winding: 0-1-2, 0-2-3)
-                _triangles[tIndex + 0] = vIndex + 0;
-                _triangles[tIndex + 1] = vIndex + 1;
-                _triangles[tIndex + 2] = vIndex + 2;
-                _triangles[tIndex + 3] = vIndex + 0;
-                _triangles[tIndex + 4] = vIndex + 2;
-                _triangles[tIndex + 5] = vIndex + 3;
+                _triangles.Add(vIndex + 0);
+                _triangles.Add(vIndex + 1);
+                _triangles.Add(vIndex + 2);
+                _triangles.Add(vIndex + 0);
+                _triangles.Add(vIndex + 2);
+                _triangles.Add(vIndex + 3);
             }
 
-            _mesh.Clear();
-            _mesh.vertices = _vertices;
-            _mesh.colors = _colors;
-            _mesh.uv = _uvs;
-            _mesh.triangles = _triangles;
+            _mesh.Clear(true);
+            _mesh.SetVertices(_vertices);
+            _mesh.SetColors(_colors);
+            _mesh.SetUVs(0, _uvs);
+            _mesh.SetTriangles(_triangles, 0);
+            
             _mesh.RecalculateBounds();
             _mesh.RecalculateNormals();
         }
