@@ -226,11 +226,30 @@ namespace StarSaga3.Project.Script.Views
             }
         }
 
-        public void TriggerShockwave(int x, int y)
+        public void TriggerShockwave(int type, int x, int y, List<Vector2Int> destroyedTiles = null)
         {
             if (_boardMaterial == null) return;
             
-            _boardMaterial.SetVector("_ExplosionCenter", new Vector4(x, y, 0, 0));
+            _boardMaterial.SetInt("_ShockwaveType", type);
+            
+            if (type == 1 || type == 2)
+            {
+                _boardMaterial.SetVector("_ExplosionCenter", new Vector4(x, y, 0, 0));
+            }
+            else if (type == 3 && destroyedTiles != null)
+            {
+                int count = Math.Min(destroyedTiles.Count, 50);
+                Vector4[] centers = new Vector4[50];
+                for (int i = 0; i < count; i++)
+                {
+                    centers[i] = new Vector4(destroyedTiles[i].x, destroyedTiles[i].y, 0, 0);
+                }
+                for (int i = count; i < 50; i++) centers[i] = Vector4.zero;
+                
+                _boardMaterial.SetVectorArray("_MultiCenters", centers);
+                _boardMaterial.SetInt("_MultiCenterCount", count);
+            }
+
             _boardMaterial.SetFloat("_ExplosionTime", 0f);
             
             DOTween.To(() => _boardMaterial.GetFloat("_ExplosionTime"), 

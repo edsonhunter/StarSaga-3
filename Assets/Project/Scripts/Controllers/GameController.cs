@@ -27,6 +27,7 @@ namespace StarSaga3.Project.Script.Controllers
         private IGameService _gameEngine;
         private bool _isAnimating;
         private bool _powerUpActivated;
+        private PowerUp _activePowerUp;
         private int _selectedX = -1;
         private int _selectedY = -1;
 
@@ -128,13 +129,21 @@ namespace StarSaga3.Project.Script.Controllers
             if (_powerUpActivated)
             {
                 _isAnimating = true;
-                _boardView.TriggerShockwave(x, y);
 
                 List<BoardSequence> powerUpResult = _gameEngine.UsePowerUp(x, y);
+
+                int shockwaveType = 1; // Default to radial explode
+                if (_activePowerUp is StripedPowerUp) shockwaveType = 2; // Line Expand
+                if (_activePowerUp is ColorPowerUp) shockwaveType = 3;   // Scatter points
+
+                var destroyedTiles = powerUpResult.Count > 0 ? powerUpResult[0].MatchedPosition : new List<Vector2Int>();
+                _boardView.TriggerShockwave(shockwaveType, x, y, destroyedTiles);
+
                 AnimateBoard(powerUpResult, 0, () =>
                 {
                     _isAnimating = false;
                     _powerUpActivated = false;
+                    _activePowerUp = null;
                 });
                 return;
             }
@@ -178,6 +187,7 @@ namespace StarSaga3.Project.Script.Controllers
         {
             if (_powerUpActivated) return;
             _powerUpActivated = true;
+            _activePowerUp = powerUp;
             _gameEngine.ActivatePowerUp(powerUp);
         }
 

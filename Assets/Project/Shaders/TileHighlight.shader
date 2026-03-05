@@ -9,6 +9,7 @@ Shader "StarSaga/TileHighlight"
         _BorderSize ("Border Size", Range(0, 0.5)) = 0.1
         
         [Header(Shockwave)]
+        _ShockwaveType ("Shockwave Type", Int) = 0
         _ExplosionCenter ("Explosion Center", Vector) = (0,0,0,0)
         _ExplosionTime ("Explosion Time", Range(0, 1)) = 0.0
         _ShockwaveStrength ("Shockwave Strength", Float) = 0.5
@@ -36,7 +37,7 @@ Shader "StarSaga/TileHighlight"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma multi_compile_instancing
             #pragma multi_compile_local _ PIXELSNAP_ON
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
@@ -67,10 +68,14 @@ Shader "StarSaga/TileHighlight"
             float _BorderSize;
             
             // Shockwave Properties
+            int _ShockwaveType;
             float4 _ExplosionCenter; // x, y (world position), z (unused), w (unused)
             float _ExplosionTime; // 0 to 1
             float _ShockwaveStrength;
             float _ShockwaveRadius;
+
+            float4 _MultiCenters[50];
+            int _MultiCenterCount;
 
             v2f vert(appdata_t IN)
             {
@@ -80,27 +85,61 @@ Shader "StarSaga/TileHighlight"
                 
                 // --- Vertex Displacement (Shockwave) ---
                 float3 worldPos = mul(unity_ObjectToWorld, IN.vertex).xyz;
-                float dist = distance(worldPos.xy, _ExplosionCenter.xy);
-                
-                // Ensure the shockwave ripple only occurs ahead of the expanding ring
-                float currentRadius = _ExplosionTime * _ShockwaveRadius;
-                
-                // Create a smooth ripple ring
-                float ripple = 0;
-                if (_ExplosionTime > 0.0 && dist < currentRadius && dist > currentRadius - 3.0) 
-                {
-                    // A sine wave ripple that fades out based on distance and time
-                    float diff = currentRadius - dist;
-                    ripple = sin(diff * 3.14159) * _ShockwaveStrength * (1.0 - _ExplosionTime);
-                }
-
                 float4 displacedVertex = IN.vertex;
-                // Displace outward from center radially
-                if (dist > 0.001) 
+                float currentRadius = _ExplosionTime * _ShockwaveRadius;
+
+                if (_ShockwaveType == 1) // Radial Explode
                 {
-                    float2 dir = normalize(worldPos.xy - _ExplosionCenter.xy);
-                    displacedVertex.xy += dir * ripple;
-                    // Also jump a bit on Z/Scale by making it push towards camera? (Not needed for 2D X/Y displacement)
+                    float dist = distance(worldPos.xy, _ExplosionCenter.xy);
+                    float ripple = 0;
+                    if (_ExplosionTime > 0.0 && dist < currentRadius && dist > currentRadius - 3.0) 
+                    {
+                        float diff = currentRadius - dist;
+                        ripple = sin(diff * 3.14159) * _ShockwaveStrength * (1.0 - _ExplosionTime);
+                    }
+                    if (dist > 0.001) 
+                    {
+                        float2 dir = normalize(worldPos.xy - _ExplosionCenter.xy);
+                        displacedVertex.xy += dir * ripple;
+                    }
+                }
+                else if (_ShockwaveType == 2) // StripLine (Horizontal Wave up and down)
+                {
+                    float dist = abs(worldPos.y - _ExplosionCenter.y);
+                    float ripple = 0;
+                    if (_ExplosionTime > 0.0 && dist < currentRadius && dist > currentRadius - 3.0) 
+                    {
+                        float diff = currentRadius - dist;
+                        ripple = sin(diff * 3.14159) * _ShockwaveStrength * (1.0 - _ExplosionTime);
+                    }
+                    float dirY = sign(worldPos.y - _ExplosionCenter.y);
+                    if (dirY == 0) dirY = 1.0;
+                    displacedVertex.y += dirY * ripple;
+                }
+                else if (_ShockwaveType == 3) // Color Scatter (Multi-Radial)
+                {
+                    float totalRippleX = 0;
+                    float totalRippleY = 0;
+                    float cRadius = _ExplosionTime * (_ShockwaveRadius * 0.5); // Smaller radius for multiple points
+                    
+                    for (int i = 0; i < _MultiCenterCount; i++)
+                    {
+                        float d = distance(worldPos.xy, _MultiCenters[i].xy);
+                        if (_ExplosionTime > 0.0 && d < cRadius && d > cRadius - 1.5)
+                        {
+                            float diff = cRadius - d;
+                            float r = sin(diff * 3.14159) * (_ShockwaveStrength * 0.5) * (1.0 - _ExplosionTime);
+                            if (d > 0.001) 
+                            {
+                                float2 dir = normalize(worldPos.xy - _MultiCenters[i].xy);
+                                totalRippleX += dir.x * r;
+                                totalRippleY += dir.y * r;
+                            }
+                        }
+                    }
+                    
+                    displacedVertex.x += totalRippleX;
+                    displacedVertex.y += totalRippleY;
                 }
                 
                 OUT.vertex = UnityObjectToClipPos(displacedVertex);
