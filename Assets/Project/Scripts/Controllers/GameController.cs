@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DG.Tweening;
 using StarSaga3.Project.Script.Core;
 using StarSaga3.Project.Script.Core.PowerUp;
+using StarSaga3.Project.Script.Core.Pooling;
 using StarSaga3.Project.Script.Models;
 using StarSaga3.Project.Script.Views;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace StarSaga3.Project.Script.Controllers
         [SerializeField] private PowerUpButtonController _stripLinePowerUp;
         [SerializeField] private PowerUpButtonController _explodePowerUp;
         [SerializeField] private PowerUpButtonController _colorPowerUp;
+        [SerializeField] private ParticlePool _particlePool;
         [SerializeField] private int _boardHeight = 10;
         [SerializeField] private int _boardWidth = 10;
 
@@ -86,6 +88,15 @@ namespace StarSaga3.Project.Script.Controllers
 
             float duration = 0.2f;
 
+            // Trigger particles for exploded tiles right as animation begins
+            if (_particlePool != null)
+            {
+                foreach (var pos in boardSequence.MatchedPosition)
+                {
+                    _particlePool.PlayEffect(new Vector3(pos.x, pos.y, -0.5f)); 
+                }
+            }
+
             // Sequential Animation logic via Callbacks
             // 1. Destroy
             _boardView.AnimateExplosion(boardSequence.MatchedPosition, duration, () =>
@@ -117,6 +128,8 @@ namespace StarSaga3.Project.Script.Controllers
             if (_powerUpActivated)
             {
                 _isAnimating = true;
+                _boardView.TriggerShockwave(x, y);
+
                 List<BoardSequence> powerUpResult = _gameEngine.UsePowerUp(x, y);
                 AnimateBoard(powerUpResult, 0, () =>
                 {

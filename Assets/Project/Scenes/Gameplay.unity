@@ -1130,6 +1130,7 @@ MonoBehaviour:
   _stripLinePowerUp: {fileID: 2142972046}
   _explodePowerUp: {fileID: 1645638004}
   _colorPowerUp: {fileID: 2111409276}
+  _particlePool: {fileID: 1870550148}
   _boardHeight: 10
   _boardWidth: 10
 --- !u!4 &1361904665
@@ -1144,7 +1145,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1870550149}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1645637999
@@ -1419,6 +1421,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1686700137}
   m_CullTransparentMesh: 1
+--- !u!1 &1870550147
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1870550149}
+  - component: {fileID: 1870550148}
+  m_Layer: 0
+  m_Name: ParticlePool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1870550148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1870550147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73002c1a0406f5a47916d0711716c367, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StarSaga3::StarSaga3.Project.Script.Core.Pooling.ParticlePool
+  _particlePrefab: {fileID: 6939272049786713349, guid: 2d6c08964da60064c9846a404e779146, type: 3}
+  _initialPoolSize: 20
+--- !u!4 &1870550149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1870550147}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1361904665}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2111409271
 GameObject:
   m_ObjectHideFlags: 0
