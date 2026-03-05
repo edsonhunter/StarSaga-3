@@ -7,6 +7,12 @@ Shader "StarSaga/TileHighlight"
         _GlowColor ("Glow Color", Color) = (1, 1, 1, 1)
         _GlowSpeed ("Glow Speed", Float) = 5.0
         _BorderSize ("Border Size", Range(0, 0.5)) = 0.1
+        
+        [Header(Shockwave)]
+        _ExplosionCenter ("Explosion Center", Vector) = (0,0,0,0)
+        _ExplosionTime ("Explosion Time", Range(0, 1)) = 0.0
+        _ShockwaveStrength ("Shockwave Strength", Float) = 0.5
+        _ShockwaveRadius ("Shockwave Radius", Float) = 15.0
     }
 
     SubShader
@@ -59,13 +65,45 @@ Shader "StarSaga/TileHighlight"
             fixed4 _GlowColor;
             float _GlowSpeed;
             float _BorderSize;
+            
+            // Shockwave Properties
+            float4 _ExplosionCenter; // x, y (world position), z (unused), w (unused)
+            float _ExplosionTime; // 0 to 1
+            float _ShockwaveStrength;
+            float _ShockwaveRadius;
 
             v2f vert(appdata_t IN)
             {
                 v2f OUT;
                 UNITY_SETUP_INSTANCE_ID(IN);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
-                OUT.vertex = UnityObjectToClipPos(IN.vertex);
+                
+                // --- Vertex Displacement (Shockwave) ---
+                float3 worldPos = mul(unity_ObjectToWorld, IN.vertex).xyz;
+                float dist = distance(worldPos.xy, _ExplosionCenter.xy);
+                
+                // Ensure the shockwave ripple only occurs ahead of the expanding ring
+                float currentRadius = _ExplosionTime * _ShockwaveRadius;
+                
+                // Create a smooth ripple ring
+                float ripple = 0;
+                if (_ExplosionTime > 0.0 && dist < currentRadius && dist > currentRadius - 3.0) 
+                {
+                    // A sine wave ripple that fades out based on distance and time
+                    float diff = currentRadius - dist;
+                    ripple = sin(diff * 3.14159) * _ShockwaveStrength * (1.0 - _ExplosionTime);
+                }
+
+                float4 displacedVertex = IN.vertex;
+                // Displace outward from center radially
+                if (dist > 0.001) 
+                {
+                    float2 dir = normalize(worldPos.xy - _ExplosionCenter.xy);
+                    displacedVertex.xy += dir * ripple;
+                    // Also jump a bit on Z/Scale by making it push towards camera? (Not needed for 2D X/Y displacement)
+                }
+                
+                OUT.vertex = UnityObjectToClipPos(displacedVertex);
                 OUT.texcoord = IN.texcoord;
                 OUT.texcoord1 = IN.texcoord1;
                 OUT.color = IN.color * _Color;

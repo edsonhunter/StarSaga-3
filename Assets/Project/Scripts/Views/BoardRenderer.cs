@@ -226,6 +226,18 @@ namespace StarSaga3.Project.Script.Views
             }
         }
 
+        public void TriggerShockwave(int x, int y)
+        {
+            if (_boardMaterial == null) return;
+            
+            _boardMaterial.SetVector("_ExplosionCenter", new Vector4(x, y, 0, 0));
+            _boardMaterial.SetFloat("_ExplosionTime", 0f);
+            
+            DOTween.To(() => _boardMaterial.GetFloat("_ExplosionTime"), 
+                       v => _boardMaterial.SetFloat("_ExplosionTime", v), 
+                       1f, 0.5f).SetEase(Ease.OutSine);
+        }
+
         private void HandleInput()
         {
             if (Input.GetMouseButtonDown(0))
